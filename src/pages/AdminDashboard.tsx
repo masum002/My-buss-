@@ -111,21 +111,33 @@ export default function AdminDashboard() {
         finalImages = [url];
       }
 
-      const pData = { ...productForm, images: finalImages };
+      const pData = { 
+        name: productForm.name,
+        price: Number(productForm.price) || 0,
+        category: productForm.category,
+        description: productForm.description,
+        stock: Number(productForm.stock) || 0,
+        images: finalImages,
+        isHot: Boolean(productForm.isHot),
+        isTopSale: Boolean(productForm.isTopSale),
+        updatedAt: Timestamp.now()
+      };
 
-      if (editingProduct) {
-        await updateDocument('products', editingProduct.id, pData);
-      } else {
+      if (!editingProduct) {
+        (pData as any).createdAt = Timestamp.now();
         await addDocument('products', pData);
+      } else {
+        await updateDocument('products', editingProduct.id, pData);
       }
       
       setShowProductModal(false);
       setEditingProduct(null);
       resetProductForm();
       fetchData();
+      alert("Product indexed successfully.");
     } catch (err) {
       console.error(err);
-      alert("Failed to save product. Check permissions.");
+      alert("Failed to save product. Check permissions or image size.");
     } finally {
       setLoading(false);
     }
@@ -372,7 +384,10 @@ export default function AdminDashboard() {
                           </div>
                           <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-2">
                              <button 
-                               onClick={() => updateDocument('products', p.id, { stock: p.stock > 0 ? 0 : 100 }).then(fetchData)}
+                               onClick={() => {
+                                 const newStock = p.stock > 0 ? 0 : 100;
+                                 updateDocument('products', p.id, { stock: newStock }).then(fetchData);
+                               }}
                                className={`text-[9px] font-black px-3 py-1 rounded-lg transition-colors ${p.stock > 0 ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}
                              >
                                 {p.stock > 0 ? 'INSTOCK' : 'OUT OF STOCK'}

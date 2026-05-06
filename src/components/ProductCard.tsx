@@ -8,8 +8,13 @@ export default function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((state) => state.addItem);
   const navigate = useNavigate();
 
+  const price = Number(product.price) || 0;
+  const imageUrl = product.images[0]?.startsWith('/src/assets') 
+    ? product.images[0].replace('/src/assets', '/assets') 
+    : product.images[0];
+
   const handleBuyNow = () => {
-    addItem({ id: product.id, name: product.name, price: product.price, image: product.images[0] });
+    addItem({ id: product.id, name: product.name, price: price, image: imageUrl });
     navigate('/checkout');
   };
 
@@ -22,7 +27,7 @@ export default function ProductCard({ product }: { product: Product }) {
     >
       <Link to={`/product/${product.id}`} className="block aspect-square overflow-hidden bg-black/40 relative">
         <img
-          src={product.images[0]}
+          src={imageUrl}
           alt={product.name}
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out"
           referrerPolicy="no-referrer"
@@ -47,7 +52,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <h3 className="text-white font-black text-lg leading-tight group-hover:text-orange-500 transition-colors uppercase truncate mr-2">
             {product.name}
           </h3>
-          <span className="text-orange-500 font-black text-xl">৳{product.price}</span>
+          <span className="text-orange-500 font-black text-xl">৳{price}</span>
         </div>
         <p className="text-white/40 text-[10px] uppercase font-black tracking-widest mb-6">
           {product.category}
@@ -55,7 +60,7 @@ export default function ProductCard({ product }: { product: Product }) {
         
         <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.images[0] })}
+            onClick={() => addItem({ id: product.id, name: product.name, price: price, image: imageUrl })}
             className="py-4 bg-white/5 border border-white/10 text-white text-[10px] font-black rounded-2xl flex items-center justify-center gap-2 hover:bg-white/10 transition-all active:scale-95 uppercase tracking-tighter"
           >
             <ShoppingBag className="w-3 h-3" />

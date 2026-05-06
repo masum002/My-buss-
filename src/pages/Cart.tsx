@@ -4,7 +4,8 @@ import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Cart() {
-  const { items, updateQuantity, removeItem, total } = useCartStore();
+  const { items, updateQuantity, removeItem, getTotal } = useCartStore();
+  const total = getTotal();
 
   if (items.length === 0) {
     return (

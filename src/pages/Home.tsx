@@ -97,17 +97,17 @@ export default function Home() {
 
       {/* Hot Deals Area */}
       {hotDeals.length > 0 && (
-        <section className="py-32 px-4 max-w-7xl mx-auto">
-          <div className="flex items-center gap-4 mb-16">
-             <div className="w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center animate-pulse">
-                <Flame className="w-6 h-6 text-red-500" />
+        <section className="py-32 px-4 max-w-7xl mx-auto bg-gradient-to-b from-red-500/5 to-transparent rounded-[4rem] mb-20 border border-red-500/10">
+          <div className="flex items-center gap-4 mb-16 px-8">
+             <div className="w-12 h-12 bg-red-500 text-white rounded-2xl flex items-center justify-center shadow-[0_10px_30px_rgba(239,68,68,0.4)]">
+                <Flame className="w-6 h-6" />
              </div>
              <div>
                 <h2 className="text-4xl font-black uppercase tracking-tighter">Hot <span className="text-red-500">Deals</span></h2>
-                <p className="text-white/40 text-sm font-light">সবচেয়ে জনপ্রিয় অফার গুলো মিস করবেন না।</p>
+                <p className="text-white/40 text-sm font-light">সীমিত সময়ের সেরা অফারগুলো এখানে।</p>
              </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-4">
              {hotDeals.map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         </section>
@@ -117,8 +117,12 @@ export default function Home() {
       <section id="shop" className="py-32 px-4 max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
           <div>
-            <h2 className="text-5xl font-black uppercase tracking-tighter">Zen <span className="text-orange-500">Inventory</span></h2>
-            <p className="text-white/40 text-sm mt-3 max-w-md">প্রিমিয়াম কোয়ালিটির স্মার্ট গ্যাজেট এখন আপনার হাতের মুঠোয়।</p>
+            <div className="flex items-center gap-2 mb-4">
+               <Grid className="w-4 h-4 text-orange-500" />
+               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Marketplace Discovery</span>
+            </div>
+            <h2 className="text-5xl font-black uppercase tracking-tighter leading-none">Zen <span className="text-orange-500">Inventory</span></h2>
+            <p className="text-white/40 text-sm mt-4 max-w-md">এক্সক্লুসিভ কালেকশন থেকে আপনার পছন্দের পণ্যটি বেছে নিন।</p>
           </div>
           <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10">
              <button className="px-6 py-3 bg-orange-500 text-white rounded-xl text-[10px] font-black uppercase shadow-xl">All Items</button>
@@ -141,12 +145,21 @@ export default function Home() {
 
              {/* Top Sales Highlight */}
              {topSales.length > 0 && (
-               <div className="bg-orange-500/5 rounded-[4rem] p-12 border border-orange-500/10">
-                  <div className="flex items-center gap-4 mb-12">
-                     <div className="w-12 h-12 bg-orange-500/10 rounded-2xl flex items-center justify-center">
-                        <TrendingUp className="w-6 h-6 text-orange-500" />
+               <div className="bg-orange-500/5 rounded-[4rem] p-12 border border-orange-500/10 shadow-[inset_0_0_100px_rgba(249,115,22,0.03)]">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
+                     <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-orange-500 text-white rounded-[2rem] flex items-center justify-center shadow-2xl shadow-orange-500/40 rotate-3">
+                           <TrendingUp className="w-8 h-8" />
+                        </div>
+                        <div>
+                           <h2 className="text-5xl font-black uppercase tracking-tighter leading-none italic">Top <br/><span className="text-orange-500">Performers</span></h2>
+                           <p className="text-orange-500/60 text-xs font-black uppercase tracking-widest mt-2">Verified Best Sellers</p>
+                        </div>
                      </div>
-                     <h2 className="text-4xl font-black uppercase tracking-tighter italic">Top <span className="text-orange-500">Performers</span></h2>
+                     <div className="bg-black/20 backdrop-blur px-8 py-4 rounded-3xl border border-white/5">
+                        <p className="text-[10px] text-white/20 uppercase font-black tracking-widest mb-1">Stock Status</p>
+                        <p className="text-xl font-black text-white uppercase italic">Critical Inventory</p>
+                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                      {topSales.map(p => <ProductCard key={p.id} product={p} />)}

@@ -11,7 +11,8 @@ import confetti from 'canvas-confetti';
 type Step = 'info' | 'payment' | 'success';
 
 export default function Checkout() {
-  const { items, total, clearCart } = useCartStore();
+  const { items, getTotal, clearCart } = useCartStore();
+  const total = getTotal();
   const [step, setStep] = useState<Step>('info');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
