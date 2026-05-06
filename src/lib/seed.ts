@@ -11,7 +11,7 @@ const SEED_PRODUCTS = [
     category: 'Watches',
     stock: 50,
     isHot: true,
-    isTopSale: false
+    isTopSale: true
   },
   {
     name: 'SonicWave Buds X',
@@ -20,7 +20,7 @@ const SEED_PRODUCTS = [
     images: ['/assets/images/wireless_earbuds_category_1778051505881.png'],
     category: 'Audio',
     stock: 100,
-    isHot: false,
+    isHot: true,
     isTopSale: true
   },
   {

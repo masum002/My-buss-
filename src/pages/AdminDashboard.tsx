@@ -135,9 +135,18 @@ export default function AdminDashboard() {
       resetProductForm();
       fetchData();
       alert("Product indexed successfully.");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to save product. Check permissions or image size.");
+      let errorMsg = "Failed to save product. Check permissions or image size.";
+      try {
+        const parsed = JSON.parse(err.message);
+        if (parsed.error && parsed.error.includes("quota")) {
+          errorMsg = "Firebase quota exceeded. Please wait 24 hours.";
+        } else if (parsed.error && parsed.error.includes("permission")) {
+          errorMsg = "Permission denied. Make sure you are logged in as admin in Vercel.";
+        }
+      } catch (e) {}
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -361,7 +370,12 @@ export default function AdminDashboard() {
                   {filteredProducts.map(p => (
                     <div key={p.id} className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden group">
                        <div className="aspect-square bg-black relative overflow-hidden">
-                          <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                          <img 
+                            src={p.images[0]} 
+                            alt={p.name} 
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                            referrerPolicy="no-referrer"
+                          />
                           <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                              <button onClick={() => handleEditProduct(p)} className="p-3 bg-white text-black rounded-xl shadow-2xl hover:bg-orange-500 hover:text-white transition-colors"><Settings className="w-4 h-4" /></button>
                              <button onClick={() => handleDeleteProduct(p.id)} className="p-3 bg-red-500 text-white rounded-xl shadow-2xl hover:bg-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
@@ -501,28 +515,28 @@ export default function AdminDashboard() {
 
                    <form onSubmit={handleProductSubmit} className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8 overflow-y-auto max-h-[70vh]">
                       <div className="space-y-6">
-                         <div 
-                           onClick={() => fileInputRef.current?.click()}
-                           className="aspect-square bg-white/5 border-2 border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center cursor-pointer hover:border-orange-500/50 transition-all group overflow-hidden relative"
-                         >
-                            {imagePreview ? (
-                               <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                            ) : (
-                               <>
-                                  <ImageIcon className="w-10 h-10 text-white/10 mb-4 group-hover:text-orange-500 transition-colors" />
-                                  <span className="text-[10px] font-black uppercase text-white/30 tracking-widest">Upload Aesthetic Asset</span>
-                               </>
-                            )}
-                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => {
-                               const file = e.target.files?.[0];
-                               if (file) {
-                                  setImageFile(file);
-                                  const r = new FileReader();
-                                  r.onload = () => setImagePreview(r.result as string);
-                                  r.readAsDataURL(file);
-                               }
-                            }} />
-                         </div>
+                          <div 
+                            onClick={() => fileInputRef.current?.click()}
+                            className="aspect-square bg-white/5 border-2 border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center cursor-pointer hover:border-orange-500/50 transition-all group overflow-hidden relative"
+                          >
+                             {imagePreview ? (
+                                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                             ) : (
+                                <>
+                                   <ImageIcon className="w-10 h-10 text-white/10 mb-4 group-hover:text-orange-500 transition-colors" />
+                                   <span className="text-[10px] font-black uppercase text-white/30 tracking-widest">Upload Aesthetic Asset</span>
+                                </>
+                             )}
+                             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                   setImageFile(file);
+                                   const r = new FileReader();
+                                   r.onload = () => setImagePreview(r.result as string);
+                                   r.readAsDataURL(file);
+                                }
+                             }} />
+                          </div>
 
                          <div>
                             <label className="text-[10px] font-black uppercase text-white/40 block mb-2">Category Segment</label>

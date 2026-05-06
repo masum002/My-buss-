@@ -143,25 +143,25 @@ export default function Home() {
                {regularProducts.map(p => <ProductCard key={p.id} product={p} />)}
              </div>
 
-             {/* Top Sales Highlight */}
+           {/* Top Sales Highlight */}
              {topSales.length > 0 && (
                <div className="bg-orange-500/5 rounded-[4rem] p-12 border border-orange-500/10 shadow-[inset_0_0_100px_rgba(249,115,22,0.03)]">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 px-4">
                      <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-orange-500 text-white rounded-[2rem] flex items-center justify-center shadow-2xl shadow-orange-500/40 rotate-3">
+                        <div className="w-16 h-16 bg-orange-500 text-white rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-orange-500/40 rotate-3">
                            <TrendingUp className="w-8 h-8" />
                         </div>
                         <div>
                            <h2 className="text-5xl font-black uppercase tracking-tighter leading-none italic">Top <br/><span className="text-orange-500">Performers</span></h2>
-                           <p className="text-orange-500/60 text-xs font-black uppercase tracking-widest mt-2">Verified Best Sellers</p>
+                           <p className="text-orange-500/60 text-xs font-black uppercase tracking-widest mt-2 px-1">Trend Analysis: High Performance</p>
                         </div>
                      </div>
-                     <div className="bg-black/20 backdrop-blur px-8 py-4 rounded-3xl border border-white/5">
-                        <p className="text-[10px] text-white/20 uppercase font-black tracking-widest mb-1">Stock Status</p>
-                        <p className="text-xl font-black text-white uppercase italic">Critical Inventory</p>
+                     <div className="bg-black/40 backdrop-blur-xl px-10 py-6 rounded-[2.5rem] border border-white/10 shadow-2xl">
+                        <p className="text-[10px] text-white/20 uppercase font-black tracking-[0.3em] mb-2">Inventory Intelligence</p>
+                        <p className="text-2xl font-black text-white uppercase italic tracking-tighter">Stock Synchronized</p>
                      </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
                      {topSales.map(p => <ProductCard key={p.id} product={p} />)}
                   </div>
                </div>
