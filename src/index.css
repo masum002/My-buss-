@@ -2,17 +2,17 @@
 
 @layer base {
   :root {
-    --background: 0 0% 2%;
-    --foreground: 0 0% 100%;
+    --background: 0 0% 98%;
+    --foreground: 0 0% 10%;
   }
 
   body {
-    @apply bg-[#050505] text-white antialiased;
+    @apply bg-[#F4F5F7] text-[#1A1A1A] antialiased;
     font-family: 'Inter', system-ui, sans-serif;
   }
 
-  .text-stroke-white {
-    -webkit-text-stroke: 1px white;
+  .text-stroke-black {
+    -webkit-text-stroke: 1px black;
     color: transparent;
   }
 }
@@ -23,13 +23,17 @@
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-black;
+  @apply bg-[#F4F5F7];
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-white/10 rounded-full hover:bg-orange-500/50 transition-colors;
+  @apply bg-black/5 rounded-full hover:bg-orange-500/50 transition-colors;
+}
+
+.silver-gradient {
+  background: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%);
 }

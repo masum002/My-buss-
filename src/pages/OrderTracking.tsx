@@ -41,39 +41,39 @@ export default function OrderTracking() {
   };
 
   return (
-    <div className="pt-24 pb-20 px-4 min-h-screen bg-[#050505] text-white">
+    <div className="pt-24 pb-20 px-4 min-h-screen bg-[#F4F5F7] text-[#1A1A1A]">
       <div className="max-w-xl mx-auto">
-        <h1 className="text-4xl font-black uppercase mb-4 tracking-tighter">Live <span className="text-orange-500 text-stroke-white">Tracking</span></h1>
-        <p className="text-white/40 mb-12 text-sm">Monitor your zen selection from fulfillment to your doorstep.</p>
+        <h1 className="text-4xl font-black uppercase mb-4 tracking-tighter italic">Live <span className="text-orange-500 text-stroke-black">Tracking</span></h1>
+        <p className="text-black/40 mb-12 text-sm font-medium italic">Monitor your FrenZway selection from fulfillment to your doorstep.</p>
 
-        <form onSubmit={handleTrack} className="space-y-4 mb-12 p-8 bg-white/5 border border-white/10 rounded-3xl">
-          <div>
-            <label className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2 block">Order ID</label>
+        <form onSubmit={handleTrack} className="space-y-4 mb-12 p-8 bg-white border border-black/5 rounded-[2.5rem] shadow-sm">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-black/30 mb-1 px-1">Order ID</label>
             <input
               type="text"
               required
               value={orderID}
               onChange={(e) => setOrderID(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 p-4 rounded-xl focus:border-orange-500 outline-none uppercase font-mono"
-              placeholder="ZEN-XXXXXXX"
+              className="w-full bg-[#F8F9FA] border border-black/5 p-4 rounded-xl focus:border-orange-500 outline-none uppercase font-mono shadow-inner"
+              placeholder="FW-XXXXXXX"
             />
           </div>
-          <div>
-            <label className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2 block">Phone Number</label>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-black/30 mb-1 px-1">Phone Number</label>
             <input
               type="tel"
               required
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 p-4 rounded-xl focus:border-orange-500 outline-none"
+              className="w-full bg-[#F8F9FA] border border-black/5 p-4 rounded-xl focus:border-orange-500 outline-none shadow-inner"
               placeholder="+880 1XXX XXXXXX"
             />
           </div>
           <button
             disabled={loading}
-            className="w-full py-4 bg-orange-500 text-white font-black rounded-xl flex items-center justify-center gap-2"
+            className="w-full py-5 bg-black text-white font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-orange-500 transition-all active:scale-95 shadow-xl uppercase tracking-widest text-xs"
           >
-            {loading ? 'Searching Satellites...' : 'Track Order'}
+            {loading ? 'Searching Satellites...' : 'Track Package'}
             <Search className="w-4 h-4" />
           </button>
         </form>
@@ -86,53 +86,53 @@ export default function OrderTracking() {
               className="space-y-6"
             >
               {order ? (
-                <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-lg">
-                  <div className="bg-orange-500/10 p-6 border-b border-orange-500/20 flex items-center justify-between">
+                <div className="bg-white border border-black/5 rounded-[2.5rem] overflow-hidden shadow-xl">
+                  <div className="bg-orange-50 p-6 border-b border-orange-500/10 flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] uppercase font-black text-orange-500">Current Status</p>
-                      <h2 className="text-2xl font-black text-white">{order.status}</h2>
+                      <p className="text-[10px] uppercase font-black text-orange-500 tracking-widest">Protocol Status</p>
+                      <h2 className="text-3xl font-black text-black italic tracking-tighter uppercase">{order.status}</h2>
                     </div>
-                    <div className="p-4 bg-black/50 rounded-2xl border border-white/10">
+                    <div className="p-4 bg-white rounded-2xl border border-black/5 shadow-sm">
                       {getStatusIcon(order.status)}
                     </div>
                   </div>
 
-                  <div className="p-6 space-y-6">
+                  <div className="p-8 space-y-8">
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center flex-shrink-0">
-                         <MapPin className="w-4 h-4 text-white/40" />
+                      <div className="w-12 h-12 bg-[#F8F9FA] rounded-2xl flex items-center justify-center flex-shrink-0 border border-black/5">
+                         <MapPin className="w-5 h-5 text-black/20" />
                       </div>
                       <div>
-                        <p className="text-[10px] uppercase text-white/40 font-bold mb-1">Destination</p>
-                        <p className="text-sm">{order.address}</p>
+                        <p className="text-[10px] uppercase text-black/30 font-black tracking-widest mb-1">Destination</p>
+                        <p className="text-sm font-bold text-black/70 leading-relaxed">{order.address}</p>
                       </div>
                     </div>
 
-                    <div className="space-y-4 pt-6 border-t border-white/10">
-                       <p className="text-[10px] uppercase text-white/40 font-bold tracking-widest">Order Summary</p>
+                    <div className="space-y-4 pt-8 border-t border-black/5">
+                       <p className="text-[10px] uppercase text-black/20 font-black tracking-[0.3em]">Payload Summary</p>
                        {order.items.map((item, idx) => (
                          <div key={idx} className="flex justify-between items-center text-sm">
-                            <span className="text-white/70">{item.name} x {item.quantity}</span>
-                            <span className="font-bold">৳{item.price * item.quantity}</span>
+                            <span className="text-black/60 font-medium">{item.name} x {item.quantity}</span>
+                            <span className="font-black italic">৳{item.price * item.quantity}</span>
                          </div>
                        ))}
-                       <div className="pt-4 flex justify-between items-center text-lg font-black border-t border-white/5">
-                          <span className="uppercase tracking-tighter">Total</span>
+                       <div className="pt-6 flex justify-between items-center text-xl font-black border-t border-black/5 italic tracking-tighter">
+                          <span className="uppercase">Total Value</span>
                           <span className="text-orange-500">৳{order.total}</span>
                        </div>
                     </div>
                     
-                    <div className="py-4 px-6 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between">
-                        <span className="text-xs uppercase text-white/40 font-bold">Payment Method</span>
-                        <span className="text-xs font-black px-3 py-1 bg-white/10 rounded-full">{order.paymentMethod}</span>
+                    <div className="py-5 px-6 bg-[#F8F9FA] rounded-2xl border border-black/5 flex items-center justify-between">
+                        <span className="text-[10px] uppercase text-black/20 font-black tracking-widest">Settlement</span>
+                        <span className="text-[10px] font-black px-4 py-1.5 bg-white border border-black/5 rounded-full shadow-sm uppercase italic">{order.paymentMethod}</span>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-20 bg-white/5 border border-dashed border-white/10 rounded-3xl">
-                  <Package className="w-12 h-12 text-white/10 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold mb-2 uppercase">Selection Not Found</h3>
-                  <p className="text-white/40 text-sm max-w-xs mx-auto">Double-check your credentials or ensure the order was placed successfully.</p>
+                <div className="text-center py-20 bg-white border border-dashed border-black/10 rounded-[3rem] shadow-inner">
+                  <Package className="w-16 h-16 text-black/5 mx-auto mb-6" />
+                  <h3 className="text-2xl font-black mb-2 uppercase italic tracking-tighter">Selection Not Found</h3>
+                  <p className="text-black/40 text-sm max-w-xs mx-auto font-medium">Double-check your credentials or ensure the order was synchronized correctly.</p>
                 </div>
               )}
             </motion.div>

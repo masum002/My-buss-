@@ -23,6 +23,15 @@ export interface OrderItem {
   image: string;
 }
 
+export interface Coupon {
+  id: string;
+  code: string;
+  discountPercentage: number;
+  productId?: string; // If null/undefined, it applies to all products
+  isActive: boolean;
+  createdAt: any;
+}
+
 export interface Order {
   id: string;
   orderID: string;
@@ -31,6 +40,8 @@ export interface Order {
   address: string;
   items: OrderItem[];
   total: number;
+  discountAmount?: number;
+  couponCode?: string;
   paymentMethod: PaymentMethod;
   paymentGateway?: PaymentGateway;
   transactionID?: string;

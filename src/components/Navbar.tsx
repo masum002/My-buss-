@@ -10,8 +10,8 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-xl border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="text-xl font-bold tracking-tighter text-white">
-          ZEN<span className="text-orange-500">STORE</span>
+        <Link to="/" className="text-2xl font-black italic tracking-tighter text-white">
+          FrenZ<span className="text-orange-500 text-stroke-white">way</span>
         </Link>
 
         <div className="flex items-center gap-6">

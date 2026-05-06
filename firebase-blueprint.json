@@ -26,6 +26,8 @@
         "address": { "type": "string" },
         "items": { "type": "array" },
         "total": { "type": "number" },
+        "discountAmount": { "type": "number" },
+        "couponCode": { "type": "string" },
         "paymentMethod": { "type": "string", "enum": ["COD", "Manual"] },
         "paymentGateway": { "type": "string", "enum": ["bKash", "Nagad", "Rocket", "None"] },
         "transactionID": { "type": "string" },
@@ -34,6 +36,19 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["orderID", "customerName", "phoneNumber", "address", "items", "total", "paymentMethod", "status"]
+    },
+    "Coupon": {
+      "title": "Coupon",
+      "description": "A discount coupon code",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "discountPercentage": { "type": "number" },
+        "productId": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["code", "discountPercentage", "isActive"]
     }
   },
   "firestore": {
@@ -44,6 +59,10 @@
     "orders": {
       "schema": "Order",
       "description": "Collection of all customer orders"
+    },
+    "coupons": {
+      "schema": "Coupon",
+      "description": "Collection of discount coupons"
     },
     "settings": {
       "schema": "object",
