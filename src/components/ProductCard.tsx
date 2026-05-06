@@ -1,0 +1,75 @@
+import { motion } from 'motion/react';
+import { ShoppingBag, Zap, ArrowRight } from 'lucide-react';
+import { Product } from '../types';
+import { useCartStore } from '../lib/store';
+import { Link, useNavigate } from 'react-router-dom';
+
+export default function ProductCard({ product }: { product: Product }) {
+  const addItem = useCartStore((state) => state.addItem);
+  const navigate = useNavigate();
+
+  const handleBuyNow = () => {
+    addItem({ id: product.id, name: product.name, price: product.price, image: product.images[0] });
+    navigate('/checkout');
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="group relative bg-white/5 rounded-[2.5rem] overflow-hidden border border-white/10 hover:border-orange-500/50 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(249,115,22,0.1)]"
+    >
+      <Link to={`/product/${product.id}`} className="block aspect-square overflow-hidden bg-black/40 relative">
+        <img
+          src={product.images[0]}
+          alt={product.name}
+          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out"
+          referrerPolicy="no-referrer"
+        />
+        <div className="absolute top-4 left-4 flex flex-col gap-2">
+           {product.isHot && (
+             <span className="bg-red-500 text-white text-[8px] font-black px-2 py-1 rounded tracking-widest uppercase">Hot</span>
+           )}
+           {product.isTopSale && (
+             <span className="bg-orange-500 text-white text-[8px] font-black px-2 py-1 rounded tracking-widest uppercase">Top Sale</span>
+           )}
+        </div>
+        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+           <span className="bg-white text-black p-3 rounded-full translate-y-4 group-hover:translate-y-0 transition-transform">
+             <ArrowRight className="w-5 h-5" />
+           </span>
+        </div>
+      </Link>
+      
+      <div className="p-6">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-white font-black text-lg leading-tight group-hover:text-orange-500 transition-colors uppercase truncate mr-2">
+            {product.name}
+          </h3>
+          <span className="text-orange-500 font-black text-xl">৳{product.price}</span>
+        </div>
+        <p className="text-white/40 text-[10px] uppercase font-black tracking-widest mb-6">
+          {product.category}
+        </p>
+        
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.images[0] })}
+            className="py-4 bg-white/5 border border-white/10 text-white text-[10px] font-black rounded-2xl flex items-center justify-center gap-2 hover:bg-white/10 transition-all active:scale-95 uppercase tracking-tighter"
+          >
+            <ShoppingBag className="w-3 h-3" />
+            + কার্ট
+          </button>
+          <button
+            onClick={handleBuyNow}
+            className="py-4 bg-orange-500 text-white text-[10px] font-black rounded-2xl flex items-center justify-center gap-2 hover:bg-orange-600 transition-all active:scale-95 uppercase shadow-lg shadow-orange-500/20 tracking-tighter"
+          >
+            <Zap className="w-3 h-3 fill-current" />
+            অর্ডার করুন
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
