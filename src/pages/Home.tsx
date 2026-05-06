@@ -12,7 +12,7 @@ export default function Home() {
 
   useEffect(() => {
     const init = async () => {
-      // await seedDatabase(); // Uncomment to seed if empty
+      await seedDatabase();
       const data = await getCollection<Product>('products');
       setProducts(data || []);
       setLoading(false);
@@ -32,7 +32,7 @@ export default function Home() {
       <section className="relative h-[85vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent z-10" />
         <img
-          src="/src/assets/images/hero_banner_ecommerce_1778051431765.png"
+          src="/assets/images/hero_banner_ecommerce_1778051431765.png"
           className="absolute inset-0 w-full h-full object-cover opacity-60 scale-105"
           alt="Hero"
           referrerPolicy="no-referrer"

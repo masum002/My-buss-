@@ -18,6 +18,7 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState<Tab>('orders');
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   
@@ -202,6 +203,12 @@ export default function AdminDashboard() {
     );
   }
 
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    p.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="pt-24 pb-20 px-4 min-h-screen bg-[#050505] text-white">
       <div className="max-w-7xl mx-auto">
@@ -312,38 +319,50 @@ export default function AdminDashboard() {
 
             {tab === 'products' && (
               <div className="space-y-8">
-                <div className="flex justify-between items-center bg-white/5 p-6 rounded-3xl border border-white/10">
-                   <div>
-                      <h2 className="text-xl font-black uppercase">Inventory Matrix</h2>
-                      <p className="text-xs text-white/40">{products.length} Items Indexed</p>
+                <div className="flex flex-col md:flex-row justify-between items-center bg-white/5 p-6 rounded-3xl border border-white/10 gap-6">
+                   <div className="flex-1 w-full relative">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                      <input 
+                        type="text" 
+                        placeholder="Search by Product Name, Category or Item Code (ID)..." 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-black/40 border border-white/10 pl-12 pr-4 py-3 rounded-xl focus:border-orange-500 outline-none text-sm transition-all"
+                      />
                    </div>
-                   <button 
-                    onClick={() => { resetProductForm(); setShowProductModal(true); }}
-                    className="flex items-center gap-2 px-6 py-3 bg-white text-black font-black rounded-xl hover:bg-orange-500 hover:text-white transition-all shadow-xl active:scale-95"
-                   >
-                     <Plus className="w-4 h-4" />
-                     ADD PRODUCT
-                   </button>
+                   <div className="flex items-center gap-4">
+                      <div className="text-right hidden sm:block">
+                         <h2 className="text-xl font-black uppercase">Inventory Matrix</h2>
+                         <p className="text-xs text-white/40">{filteredProducts.length} Items Filtered</p>
+                      </div>
+                      <button 
+                       onClick={() => { resetProductForm(); setShowProductModal(true); }}
+                       className="flex items-center gap-2 px-6 py-3 bg-white text-black font-black rounded-xl hover:bg-orange-500 hover:text-white transition-all shadow-xl active:scale-95 text-xs"
+                      >
+                        <Plus className="w-4 h-4" />
+                        ADD PRODUCT
+                      </button>
+                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {products.map(p => (
+                  {filteredProducts.map(p => (
                     <div key={p.id} className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden group">
                        <div className="aspect-square bg-black relative overflow-hidden">
                           <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                           <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                             <button onClick={() => handleEditProduct(p)} className="p-3 bg-white text-black rounded-xl shadow-2xl"><Settings className="w-4 h-4" /></button>
-                             <button onClick={() => handleDeleteProduct(p.id)} className="p-3 bg-red-500 text-white rounded-xl shadow-2xl"><Trash2 className="w-4 h-4" /></button>
+                             <button onClick={() => handleEditProduct(p)} className="p-3 bg-white text-black rounded-xl shadow-2xl hover:bg-orange-500 hover:text-white transition-colors"><Settings className="w-4 h-4" /></button>
+                             <button onClick={() => handleDeleteProduct(p.id)} className="p-3 bg-red-500 text-white rounded-xl shadow-2xl hover:bg-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
                           </div>
                           <div className="absolute bottom-4 left-4">
                              <span className="bg-black/80 backdrop-blur px-3 py-1 rounded-lg text-[10px] font-black text-orange-500 border border-white/10">
-                               SKU: {p.id.slice(-5).toUpperCase()}
+                                CODE: {p.id.slice(-8).toUpperCase()}
                              </span>
                           </div>
                        </div>
                        <div className="p-6">
                           <div className="flex justify-between items-start mb-1">
-                             <h3 className="font-bold uppercase tracking-tight">{p.name}</h3>
+                             <h3 className="font-bold uppercase tracking-tight truncate mr-2">{p.name}</h3>
                              <p className="text-orange-500 font-black">৳{p.price}</p>
                           </div>
                           <p className="text-[10px] text-white/40 uppercase font-black mb-2">{p.category}</p>
@@ -351,10 +370,15 @@ export default function AdminDashboard() {
                              {p.isHot && <span className="px-2 py-0.5 bg-red-500/10 text-red-500 text-[8px] font-black rounded border border-red-500/20">HOT</span>}
                              {p.isTopSale && <span className="px-2 py-0.5 bg-orange-500/10 text-orange-500 text-[8px] font-black rounded border border-orange-500/20">TOP SALE</span>}
                           </div>
-                          <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                             <span className="text-[10px] text-white/20 uppercase font-bold">In Stock</span>
-                             <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shadow-inner ${p.stock < 10 ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'}`}>
-                                {p.stock} UNITS
+                          <div className="flex items-center justify-between pt-4 border-t border-white/5 gap-2">
+                             <button 
+                               onClick={() => updateDocument('products', p.id, { stock: p.stock > 0 ? 0 : 100 }).then(fetchData)}
+                               className={`text-[9px] font-black px-3 py-1 rounded-lg transition-colors ${p.stock > 0 ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}
+                             >
+                                {p.stock > 0 ? 'INSTOCK' : 'OUT OF STOCK'}
+                             </button>
+                             <span className="text-[10px] font-black text-white/40">
+                                {p.stock} QTY
                              </span>
                           </div>
                        </div>
