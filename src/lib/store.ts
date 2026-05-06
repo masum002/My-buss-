@@ -45,7 +45,11 @@ export const useCartStore = create<CartState>()(
         }),
       clearCart: () => set({ items: [] }),
       getTotal: () => {
-        return get().items.reduce((acc, item) => acc + (Number(item.price) || 0) * item.quantity, 0);
+        const items = get().items;
+        return items.reduce((acc, item) => {
+          const itemPrice = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
+          return acc + (itemPrice || 0) * item.quantity;
+        }, 0);
       },
     }),
     {

@@ -9,9 +9,10 @@ export default function ProductCard({ product }: { product: Product }) {
   const navigate = useNavigate();
 
   const price = Number(product.price) || 0;
-  const imageUrl = product.images[0]?.startsWith('/src/assets') 
-    ? product.images[0].replace('/src/assets', '/assets') 
-    : product.images[0];
+  const rawImageUrl = product.images?.[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000&auto=format&fit=crop';
+  const imageUrl = rawImageUrl.startsWith('/src/assets') 
+    ? rawImageUrl.replace('/src/assets', '/assets') 
+    : rawImageUrl;
 
   const handleBuyNow = () => {
     addItem({ id: product.id, name: product.name, price: price, image: imageUrl });

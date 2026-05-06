@@ -30,8 +30,8 @@ const SEED_PRODUCTS = [
     images: ['/assets/images/mechanical_keyboard_category_1778051523388.png'],
     category: 'Keyboards',
     stock: 30,
-    isHot: true,
-    isTopSale: true
+    isHot: false,
+    isTopSale: false
   }
 ];
 

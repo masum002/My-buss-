@@ -41,7 +41,7 @@ export default function Cart() {
               
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-lg truncate">{item.name}</h3>
-                <p className="text-orange-500 font-bold">৳{item.price}</p>
+                <p className="text-orange-500 font-bold">৳{Number(item.price).toLocaleString()}</p>
               </div>
 
               <div className="flex items-center gap-3 bg-black/40 rounded-lg p-1">

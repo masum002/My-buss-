@@ -27,11 +27,11 @@ export default function AdminDashboard() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productForm, setProductForm] = useState({
     name: '',
-    price: 0,
+    price: '',
     category: 'Electronics',
     description: '',
-    stock: 0,
-    images: [] as string[],
+    stock: '',
+    imageUrl: '',
     isHot: false,
     isTopSale: false
   });
@@ -103,12 +103,27 @@ export default function AdminDashboard() {
     e.preventDefault();
     setLoading(true);
     try {
-      let finalImages = productForm.images;
-      if (imageFile) {
-        const storageRef = ref(storage, `products/${Date.now()}-${imageFile.name}`);
-        await uploadBytes(storageRef, imageFile);
-        const url = await getDownloadURL(storageRef);
-        finalImages = [url];
+      let finalImages: string[] = [];
+      
+      // Prioritize URL if provided, otherwise check upload
+      if (productForm.imageUrl) {
+        finalImages = [productForm.imageUrl];
+      } else if (imageFile) {
+        try {
+          const storageRef = ref(storage, `products/${Date.now()}-${imageFile.name}`);
+          await uploadBytes(storageRef, imageFile);
+          const url = await getDownloadURL(storageRef);
+          finalImages = [url];
+        } catch (storageErr) {
+          console.error("Storage upload failed", storageErr);
+          throw new Error(JSON.stringify({ error: "Storage upload failed. Please try Image URL instead." }));
+        }
+      } else if (editingProduct && editingProduct.images) {
+        finalImages = editingProduct.images;
+      }
+
+      if (finalImages.length === 0) {
+        throw new Error(JSON.stringify({ error: "Please provide an image URL or upload an image." }));
       }
 
       const pData = { 
@@ -137,13 +152,11 @@ export default function AdminDashboard() {
       alert("Product indexed successfully.");
     } catch (err: any) {
       console.error(err);
-      let errorMsg = "Failed to save product. Check permissions or image size.";
+      let errorMsg = "Failed to save product.";
       try {
         const parsed = JSON.parse(err.message);
-        if (parsed.error && parsed.error.includes("quota")) {
-          errorMsg = "Firebase quota exceeded. Please wait 24 hours.";
-        } else if (parsed.error && parsed.error.includes("permission")) {
-          errorMsg = "Permission denied. Make sure you are logged in as admin in Vercel.";
+        if (parsed.error) {
+          errorMsg = parsed.error;
         }
       } catch (e) {}
       alert(errorMsg);
@@ -156,11 +169,11 @@ export default function AdminDashboard() {
     setEditingProduct(p);
     setProductForm({
       name: p.name,
-      price: p.price,
+      price: String(p.price) as any,
       category: p.category,
       description: p.description,
-      stock: p.stock,
-      images: p.images,
+      stock: String(p.stock) as any,
+      imageUrl: p.images[0] || '',
       isHot: p.isHot || false,
       isTopSale: p.isTopSale || false
     });
@@ -178,11 +191,11 @@ export default function AdminDashboard() {
   const resetProductForm = () => {
     setProductForm({ 
       name: '', 
-      price: 0, 
+      price: '' as any, 
       category: 'Electronics', 
       description: '', 
-      stock: 0, 
-      images: [],
+      stock: '' as any, 
+      imageUrl: '',
       isHot: false,
       isTopSale: false 
     });
@@ -389,7 +402,7 @@ export default function AdminDashboard() {
                        <div className="p-6">
                           <div className="flex justify-between items-start mb-1">
                              <h3 className="font-bold uppercase tracking-tight truncate mr-2">{p.name}</h3>
-                             <p className="text-orange-500 font-black">৳{p.price}</p>
+                             <p className="text-orange-500 font-black">৳{Number(p.price).toLocaleString()}</p>
                           </div>
                           <p className="text-[10px] text-white/40 uppercase font-black mb-2">{p.category}</p>
                           <div className="flex gap-2 mb-4">
@@ -532,10 +545,28 @@ export default function AdminDashboard() {
                                 if (file) {
                                    setImageFile(file);
                                    const r = new FileReader();
-                                   r.onload = () => setImagePreview(r.result as string);
+                                   r.onload = () => {
+                                     setImagePreview(r.result as string);
+                                     setProductForm(prev => ({ ...prev, imageUrl: '' })); // Clear URL if file selected
+                                   };
                                    r.readAsDataURL(file);
                                 }
                              }} />
+                          </div>
+
+                          <div>
+                             <label className="text-[10px] font-black uppercase text-white/40 block mb-2">Or Image URL</label>
+                             <input 
+                               type="url" 
+                               value={productForm.imageUrl}
+                               onChange={e => {
+                                 setProductForm({...productForm, imageUrl: e.target.value});
+                                 setImagePreview(e.target.value);
+                                 setImageFile(null); // Clear file if URL entered
+                               }}
+                               className="w-full bg-black border border-white/10 p-4 rounded-xl font-bold focus:border-orange-500 outline-none text-xs" 
+                               placeholder="https://example.com/image.jpg"
+                             />
                           </div>
 
                          <div>
