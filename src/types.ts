@@ -23,6 +23,14 @@ export interface OrderItem {
   image: string;
 }
 
+export interface Admin {
+  id: string;
+  email: string;
+  role: 'super' | 'admin';
+  addedBy?: string;
+  addedAt: any;
+}
+
 export interface Coupon {
   id: string;
   code: string;

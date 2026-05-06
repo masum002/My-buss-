@@ -9,21 +9,23 @@ import { orderBy, Timestamp } from 'firebase/firestore';
 import { 
   Search, ChevronDown, Package, Clock, Filter, Eye, Lock, LogOut, 
   Plus, Settings, ListOrdered, Box, Trash2, Upload, Save, X, Truck, 
-  Smartphone, MapPin, Banknote, Image as ImageIcon, Ticket
+  Smartphone, MapPin, Banknote, Image as ImageIcon, Ticket, ShieldCheck, UserPlus, Users
 } from 'lucide-react';
 
-import { Coupon } from '../types';
+import { Coupon, Admin } from '../types';
 
-type Tab = 'orders' | 'products' | 'coupons' | 'settings';
+type Tab = 'orders' | 'products' | 'coupons' | 'admins' | 'settings';
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState<Tab>('orders');
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [adminsList, setAdminsList] = useState<Admin[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   
   // Product Form State
   const [showProductModal, setShowProductModal] = useState(false);
@@ -52,6 +54,13 @@ export default function AdminDashboard() {
     isActive: true
   });
 
+  // Admin Management State
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [adminForm, setAdminForm] = useState({
+    email: '',
+    role: 'admin' as 'admin' | 'super'
+  });
+
   // Settings State
   const [settings, setSettings] = useState({
     deliveryInsideDhaka: 60,
@@ -61,12 +70,22 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
+        // Fetch role
+        const adminDoc = await getDocument<Admin>('admins', u.email || '');
+        if (adminDoc) {
+          setUserRole(adminDoc.role);
+        } else if (u.email === 'mahfujar003@gmail.com') {
+          setUserRole('super');
+        } else {
+          setUserRole(null);
+        }
         fetchData();
       } else {
         setLoading(false);
+        setUserRole(null);
       }
     });
     return () => unsubscribe();
@@ -84,6 +103,9 @@ export default function AdminDashboard() {
       } else if (tab === 'coupons') {
         const data = await getCollection<Coupon>('coupons', [orderBy('createdAt', 'desc')]);
         setCoupons(data || []);
+      } else if (tab === 'admins') {
+        const data = await getCollection<Admin>('admins', [orderBy('addedAt', 'desc')]);
+        setAdminsList(data || []);
       } else if (tab === 'settings') {
         const data = await getDocument<any>('settings', 'global');
         if (data) setSettings(data);
@@ -98,11 +120,7 @@ export default function AdminDashboard() {
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      if (result.user.email !== 'mahfujar003@gmail.com') {
-        await signOut(auth);
-        alert("Only authorized emails can access this panel.");
-      }
+      await signInWithPopup(auth, provider);
     } catch (err) {
       alert("Authentication failed.");
     }
@@ -113,6 +131,45 @@ export default function AdminDashboard() {
     setOrders([]);
     setProducts([]);
     setCoupons([]);
+    setAdminsList([]);
+  };
+
+  const isSuperAdmin = user?.email === 'mahfujar003@gmail.com' || userRole === 'super';
+
+  // Admin Management Actions
+  const handleAddAdmin = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!isSuperAdmin) return;
+    setLoading(true);
+    try {
+      const email = adminForm.email.toLowerCase().trim();
+      await createDocument('admins', email, {
+        email,
+        role: adminForm.role,
+        addedBy: user.email,
+        addedAt: Timestamp.now()
+      });
+      setShowAdminModal(false);
+      setAdminForm({ email: '', role: 'admin' });
+      fetchData();
+      alert("Admin access granted.");
+    } catch (err) {
+      alert("Failed to grant access.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemoveAdmin = async (email: string) => {
+    if (!isSuperAdmin) return;
+    if (email === 'mahfujar003@gmail.com') {
+      alert("Primary Super Admin cannot be removed.");
+      return;
+    }
+    if (confirm(`Revoke access for ${email}?`)) {
+      await deleteDocument('admins', email);
+      fetchData();
+    }
   };
 
   // Coupon Management
@@ -338,6 +395,7 @@ export default function AdminDashboard() {
               { id: 'orders', label: 'Orders', icon: ListOrdered },
               { id: 'products', label: 'Inventory', icon: Box },
               { id: 'coupons', label: 'Coupons', icon: Ticket },
+              ...(isSuperAdmin ? [{ id: 'admins', label: 'Admins', icon: ShieldCheck }] : []),
               { id: 'settings', label: 'Config', icon: Settings }
             ].map((t) => (
               <button
@@ -376,6 +434,7 @@ export default function AdminDashboard() {
                              <th className="p-6 text-[10px] uppercase font-black text-black/30 tracking-widest">Order Details</th>
                              <th className="p-6 text-[10px] uppercase font-black text-black/30 tracking-widest">Customer</th>
                              <th className="p-6 text-[10px] uppercase font-black text-black/30 tracking-widest">Delivery Address</th>
+                             <th className="p-6 text-[10px] uppercase font-black text-black/30 tracking-widest">Amount</th>
                              <th className="p-6 text-[10px] uppercase font-black text-black/30 tracking-widest">Payment Meta</th>
                              <th className="p-6 text-[10px] uppercase font-black text-black/30 tracking-widest">Fulfillment</th>
                              <th className="p-6 text-right"></th>
@@ -394,6 +453,17 @@ export default function AdminDashboard() {
                                </td>
                                <td className="p-6">
                                  <p className="text-xs font-semibold text-black/60 max-w-[250px] leading-relaxed">{order.address}</p>
+                               </td>
+                               <td className="p-6">
+                                 <div className="flex flex-col">
+                                   <p className="font-black italic text-lg tracking-tighter">৳{order.total.toLocaleString()}</p>
+                                   {order.discountAmount && order.discountAmount > 0 && (
+                                     <p className="text-[9px] font-black text-green-600 uppercase">Discount: ৳{order.discountAmount}</p>
+                                   )}
+                                   {order.couponCode && (
+                                     <p className="text-[8px] font-bold text-orange-500 uppercase">Code: {order.couponCode}</p>
+                                   )}
+                                 </div>
                                </td>
                                <td className="p-6">
                                  <div className="flex flex-col gap-1">
@@ -574,6 +644,73 @@ export default function AdminDashboard() {
                </div>
              )}
 
+             {tab === 'admins' && isSuperAdmin && (
+                <div className="space-y-8">
+                  <div className="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-[2rem] border border-black/5 gap-6 shadow-sm">
+                    <div className="flex-1">
+                       <h2 className="text-xl font-black uppercase tracking-tighter italic">Administrative Council</h2>
+                       <p className="text-xs text-black/40 font-medium">Grant or revoke strategic operational access.</p>
+                    </div>
+                    <button 
+                      onClick={() => setShowAdminModal(true)}
+                      className="flex items-center gap-3 px-8 py-4 bg-black text-white font-black rounded-xl hover:bg-orange-500 transition-all shadow-xl active:scale-95 text-xs uppercase tracking-widest"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      AUTHORIZE ADMIN
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Primary Super Admin Card */}
+                    <div className="bg-white border-2 border-orange-500/20 rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden">
+                       <div className="relative z-10">
+                          <div className="flex justify-between items-start mb-6">
+                             <div className="p-3 bg-orange-500 text-white rounded-2xl shadow-lg">
+                                <ShieldCheck className="w-6 h-6" />
+                             </div>
+                             <span className="px-3 py-1 bg-orange-500 text-white text-[8px] font-black uppercase tracking-[0.2em] rounded-full">Primary Super</span>
+                          </div>
+                          <h3 className="text-lg font-black italic tracking-tighter mb-1 truncate">mahfujar003@gmail.com</h3>
+                          <p className="text-[10px] text-black/40 font-bold uppercase tracking-widest">Root Authority</p>
+                       </div>
+                       <div className="absolute -bottom-6 -right-6 opacity-[0.05]">
+                          <ShieldCheck className="w-32 h-32" />
+                       </div>
+                    </div>
+
+                    {adminsList.filter(a => a.email !== 'mahfujar003@gmail.com').map(admin => (
+                      <div key={admin.id} className="bg-white border border-black/5 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all relative overflow-hidden group">
+                         <div className="relative z-10">
+                            <div className="flex justify-between items-start mb-6">
+                               <div className="p-3 bg-[#F8F9FA] text-black/20 rounded-2xl border border-black/5">
+                                  <Users className="w-6 h-6" />
+                               </div>
+                               <button 
+                                 onClick={() => handleRemoveAdmin(admin.email)} 
+                                 className="p-3 bg-red-50 text-red-500 border border-red-100 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90"
+                               >
+                                  <Trash2 className="w-4 h-4" />
+                               </button>
+                            </div>
+                            <h3 className="text-lg font-black italic tracking-tighter mb-1 truncate">{admin.email}</h3>
+                            <div className="flex items-center gap-2">
+                               <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${
+                                 admin.role === 'super' ? 'bg-orange-50 text-orange-500' : 'bg-black text-white'
+                               }`}>
+                                 {admin.role}
+                               </span>
+                               <span className="text-[9px] text-black/20 font-medium italic">Added {admin.addedAt?.toDate?.()?.toLocaleDateString()}</span>
+                            </div>
+                         </div>
+                         <div className="absolute -bottom-8 -right-8 opacity-[0.02] group-hover:scale-110 transition-transform duration-500">
+                            <Users className="w-40 h-40" />
+                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+             )}
+
              {tab === 'settings' && (
               <div className="max-w-3xl mx-auto space-y-8">
                  <div className="bg-white p-12 rounded-[3.5rem] border border-black/5 space-y-12 shadow-sm">
@@ -649,6 +786,64 @@ export default function AdminDashboard() {
               </div>
             )}
           </motion.div>
+        </AnimatePresence>
+
+        {/* Admin Modal */}
+        <AnimatePresence>
+          {showAdminModal && isSuperAdmin && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-white/60 backdrop-blur-xl">
+               <motion.div 
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  className="w-full max-w-lg bg-white border border-black/5 rounded-[3.5rem] overflow-hidden shadow-2xl"
+               >
+                  <div className="flex justify-between items-center p-8 border-b border-black/5 bg-[#F8F9FA]/50">
+                    <h2 className="text-2xl font-black uppercase tracking-tighter italic">Authorize <span className="text-orange-500 text-stroke-black">Operator</span></h2>
+                    <button onClick={() => setShowAdminModal(false)} className="p-3 bg-black text-white rounded-full hover:bg-orange-500 transition-all shadow-lg active:scale-95">
+                       <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleAddAdmin} className="p-10 space-y-8">
+                     <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase text-black/30 tracking-[0.2em] block px-1">Email Identifier</label>
+                        <input 
+                          type="email" 
+                          required
+                          value={adminForm.email}
+                          onChange={e => setAdminForm({...adminForm, email: e.target.value})}
+                          className="w-full bg-[#F8F9FA] border border-black/5 p-6 rounded-2xl font-bold text-sm shadow-inner focus:border-orange-500 outline-none" 
+                          placeholder="admin@frenzway.com"
+                        />
+                     </div>
+
+                     <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase text-black/30 tracking-[0.2em] block px-1">Access Role</label>
+                        <select 
+                          value={adminForm.role}
+                          onChange={e => setAdminForm({...adminForm, role: e.target.value as any})}
+                          className="w-full bg-[#F8F9FA] border border-black/5 p-5 rounded-2xl font-black text-sm shadow-inner focus:border-orange-500 outline-none cursor-pointer uppercase"
+                        >
+                          <option value="admin">Standard Operator</option>
+                          <option value="super">Super Admin (Can manage others)</option>
+                        </select>
+                     </div>
+
+                     <div className="bg-orange-50 p-6 rounded-2xl border border-orange-100">
+                        <p className="text-[10px] text-orange-600 font-bold leading-relaxed uppercase italic">Warning: Granting access allows the user to modify product listings, view customer data, and update platform settings.</p>
+                     </div>
+
+                     <button 
+                       disabled={loading}
+                       className="w-full py-6 bg-black text-white font-black text-xs uppercase tracking-[0.4em] rounded-[2.5rem] hover:bg-orange-500 transition-all active:scale-95 shadow-2xl"
+                     >
+                       {loading ? 'AUTHORIZING...' : 'INITIALIZE ACCESS'}
+                     </button>
+                  </form>
+               </motion.div>
+            </div>
+          )}
         </AnimatePresence>
 
         {/* Coupon Modal */}

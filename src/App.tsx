@@ -21,7 +21,7 @@ export default function App() {
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/track" element={<OrderTracking />} />
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/FrenZway" element={<AdminDashboard />} />
             </Routes>
           </AnimatePresence>
         </main>
