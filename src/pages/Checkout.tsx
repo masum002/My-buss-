@@ -2,13 +2,13 @@ import React, { useState, useRef, useEffect, FormEvent, ChangeEvent } from 'reac
 import { motion, AnimatePresence } from 'motion/react';
 import { useCartStore } from '../lib/store';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { createDocument, getDocument, getCollection } from '../lib/firestore';
+import { createDocument, getDocument, getCollection, updateDocument } from '../lib/firestore';
 import { auth, storage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { CheckCircle2, ChevronRight, Upload, Smartphone, CreditCard, Banknote, Image as ImageIcon, Loader2, MapPin, Ticket, Tag, X } from 'lucide-react';
+import { CheckCircle2, ChevronRight, Upload, Smartphone, CreditCard, Banknote, Image as ImageIcon, Loader2, MapPin, Ticket, Tag, X, Box } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { where } from 'firebase/firestore';
-import { Coupon } from '../types';
+import { where, increment } from 'firebase/firestore';
+import { Coupon, Product } from '../types';
 
 type Step = 'info' | 'payment' | 'success';
 
@@ -23,6 +23,8 @@ export default function Checkout() {
   const checkoutItems = directBuyItem 
     ? [{ ...directBuyItem, quantity: 1 }] 
     : items;
+
+  const [productStocks, setProductStocks] = useState<Record<string, number>>({});
 
   const calculateSubtotal = () => {
     return checkoutItems.reduce((acc, item) => {
@@ -68,8 +70,21 @@ export default function Checkout() {
       const data = await getDocument<any>('settings', 'global');
       if (data) setSettings(data);
     };
+    
+    const fetchStocks = async () => {
+      const stocks: Record<string, number> = {};
+      for (const item of checkoutItems) {
+        const prod = await getDocument<Product>('products', item.id);
+        if (prod) {
+          stocks[item.id] = prod.stock || 0;
+        }
+      }
+      setProductStocks(stocks);
+    };
+
     fetchSettings();
-  }, []);
+    fetchStocks();
+  }, [checkoutItems.length]);
 
   const handleApplyCoupon = async () => {
     if (!couponInput) return;
@@ -190,7 +205,16 @@ export default function Checkout() {
     };
 
     try {
+      // 1. Create the order
       await createDocument('orders', newOrderID, orderData);
+      
+      // 2. Decrease Stock for each item
+      for (const item of checkoutItems) {
+        await updateDocument('products', item.id, {
+          stock: increment(-item.quantity)
+        });
+      }
+
       setOrderId(newOrderID);
       setStep('success');
       
@@ -398,6 +422,32 @@ export default function Checkout() {
               )}
 
                 <div className="bg-white p-10 rounded-[3rem] border border-black/5 shadow-2xl">
+                {/* Visual Order Inventory Check */}
+                <div className="mb-8 space-y-3">
+                   <p className="text-[10px] font-black uppercase text-black/30 tracking-widest px-1">Inventory Verification</p>
+                   {checkoutItems.map(item => (
+                     <div key={item.id} className="flex justify-between items-center bg-[#F8F9FA] p-4 rounded-2xl border border-black/5">
+                        <div className="flex items-center gap-3">
+                           <div className="w-10 h-10 bg-white rounded-lg border border-black/5 flex items-center justify-center p-1 overflow-hidden">
+                              <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                           </div>
+                           <div>
+                              <p className="text-[10px] font-black uppercase tracking-tight truncate max-w-[120px]">{item.name}</p>
+                              <p className="text-[9px] font-bold text-orange-500 uppercase">Qty: {item.quantity}</p>
+                           </div>
+                        </div>
+                        <div className="text-right">
+                           <p className={`text-[8px] font-black uppercase tracking-widest ${
+                             (productStocks[item.id] || 0) <= 0 ? 'text-red-500' : 'text-green-500'
+                           }`}>
+                             {(productStocks[item.id] || 0) <= 0 ? 'Out of Stock' : `Available: ${productStocks[item.id]}`}
+                           </p>
+                           <p className="text-xs font-black italic">৳{(item.price * item.quantity).toLocaleString()}</p>
+                        </div>
+                     </div>
+                   ))}
+                </div>
+
                 {/* Coupon Section */}
                 <div className="mb-8 p-6 bg-[#F8F9FA] rounded-[2rem] border border-black/5">
                    <p className="text-[10px] font-black uppercase text-black/30 tracking-widest mb-4 px-1">Discount Protocol</p>

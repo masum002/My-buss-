@@ -132,34 +132,37 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div className="lg:col-span-2 grid grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <p className="text-[10px] font-black uppercase text-black/20 tracking-[0.3em]">Quick Navigation</p>
-              <ul className="space-y-3">
-                {footerLinks.map(link => (
-                  <li key={link.label}>
-                    <button 
-                      onClick={() => setActiveModal(link.type)}
-                      className="text-sm font-bold text-black/40 hover:text-black transition-colors flex items-center gap-2 group"
-                    >
-                      <span className="w-1.5 h-1.5 bg-black/5 rounded-full group-hover:bg-orange-500 transition-colors" />
-                      {link.label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <p className="text-[10px] font-black uppercase text-black/20 tracking-[0.3em]">Shop Segments</p>
-              <ul className="space-y-3">
-                {['Audio Gear', 'Timepieces', 'Mechanical Keys', 'Ecosystem'].map(item => (
-                  <li key={item} className="text-sm font-bold text-black/40 hover:text-black transition-colors flex items-center gap-2">
-                     <span className="w-1.5 h-1.5 bg-black/5 rounded-full" />
-                     {item}
-                  </li>
-                ))}
-              </ul>
+          {/* Modern Navigation */}
+          <div className="lg:col-span-2">
+            <p className="text-[10px] font-black uppercase text-black/20 tracking-[0.3em] mb-10">Smart Navigation Control</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {footerLinks.map(link => (
+                <button 
+                  key={link.label}
+                  onClick={() => setActiveModal(link.type)}
+                  className="flex items-center gap-4 p-5 bg-[#F8F9FA] border border-black/5 rounded-3xl hover:bg-black hover:text-white transition-all group shadow-sm text-left"
+                >
+                  <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center border border-black/5 text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all shadow-inner">
+                    {link.icon && <link.icon className="w-4 h-4" />}
+                  </div>
+                  <div>
+                    <span className="text-xs font-black uppercase tracking-widest">{link.label}</span>
+                    <p className="text-[8px] font-bold text-black/20 group-hover:text-white/40 uppercase tracking-tighter mt-0.5 italic">Access Protocol Ready</p>
+                  </div>
+                </button>
+              ))}
+              <a 
+                href="/track"
+                className="flex items-center gap-4 p-5 bg-[#F8F9FA] border border-black/5 rounded-3xl hover:bg-orange-500 hover:text-white transition-all group shadow-sm text-left"
+              >
+                <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center border border-black/5 text-orange-500 group-hover:bg-white group-hover:text-orange-500 transition-all shadow-inner">
+                  <HelpCircle className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-xs font-black uppercase tracking-widest">Track Order</span>
+                  <p className="text-[8px] font-bold text-black/20 group-hover:text-white/40 uppercase tracking-tighter mt-0.5 italic">Real-time Logistics</p>
+                </div>
+              </a>
             </div>
           </div>
 

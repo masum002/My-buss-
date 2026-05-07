@@ -12,10 +12,20 @@ export default function Home() {
 
   useEffect(() => {
     const init = async () => {
-      await seedDatabase();
-      const data = await getCollection<Product>('products');
-      setProducts(data || []);
-      setLoading(false);
+      try {
+        await seedDatabase();
+      } catch (e) {
+        console.warn("Database seeding deferred:", e);
+      }
+      
+      try {
+        const data = await getCollection<Product>('products');
+        setProducts(data || []);
+      } catch (e) {
+        console.error("Failed to load products:", e);
+      } finally {
+        setLoading(false);
+      }
     };
     init();
   }, []);
