@@ -7,6 +7,7 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import OrderTracking from './pages/OrderTracking';
 import AdminDashboard from './pages/AdminDashboard';
+import ProductDetail from './pages/ProductDetail';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/track" element={<OrderTracking />} />
+              <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/FrenZway" element={<AdminDashboard />} />
             </Routes>
           </AnimatePresence>
