@@ -216,8 +216,8 @@ export default function Checkout() {
   };
 
   return (
-    <div className="pt-24 pb-20 px-4 min-h-screen bg-[#F4F5F7] text-[#1A1A1A]">
-      <div className="max-w-2xl mx-auto">
+    <div className="pt-24 pb-8 px-4 bg-[#F4F5F7] text-[#1A1A1A]">
+      <div className="max-w-2xl mx-auto min-h-[40vh]">
         
         {/* Progress Bar */}
         <div className="flex items-center gap-4 mb-12">

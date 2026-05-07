@@ -444,8 +444,15 @@ export default function AdminDashboard() {
                           {orders.map(order => (
                             <tr key={order.id} className="hover:bg-[#F8F9FA] group transition-colors">
                                <td className="p-6">
-                                 <span className="text-orange-500 font-mono font-bold">{order.orderID}</span>
-                                 <p className="text-[10px] text-black/30 mt-1 uppercase font-black">{order.createdAt?.toDate?.()?.toLocaleString()}</p>
+                                 <span className="text-orange-500 font-mono font-bold tracking-tight">{order.orderID}</span>
+                                 <div className="mt-2 space-y-1">
+                                   {order.items.map((item, idx) => (
+                                     <p key={idx} className="text-[10px] font-bold text-black/60 uppercase italic">
+                                       {item.name} <span className="text-orange-500">x{item.quantity}</span>
+                                     </p>
+                                   ))}
+                                 </div>
+                                 <p className="text-[9px] text-black/30 mt-2 uppercase font-black">{order.createdAt?.toDate?.()?.toLocaleString()}</p>
                                </td>
                                <td className="p-6">
                                  <p className="font-bold uppercase text-sm tracking-tight">{order.customerName}</p>
@@ -478,15 +485,28 @@ export default function AdminDashboard() {
                                  </div>
                                </td>
                                <td className="p-6">
-                                 <select 
-                                   value={order.status}
-                                   onChange={(e) => updateDocument('orders', order.id, { status: e.target.value })}
-                                   className="bg-[#F8F9FA] border border-black/5 text-[10px] uppercase font-black px-4 py-2 rounded-lg focus:border-orange-500 outline-none cursor-pointer"
-                                 >
-                                   {['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map(s => (
-                                     <option key={s} value={s}>{s}</option>
-                                   ))}
-                                 </select>
+                                 <div className="relative group/status flex items-center">
+                                   <div className={`absolute left-3 w-1.5 h-1.5 rounded-full ${
+                                     order.status === 'Delivered' ? 'bg-green-500' :
+                                     order.status === 'Cancelled' ? 'bg-red-500' :
+                                     order.status === 'Shipped' ? 'bg-orange-500' :
+                                     order.status === 'Processing' ? 'bg-blue-500' : 'bg-gray-400'
+                                   }`} />
+                                   <select 
+                                     value={order.status}
+                                     onChange={(e) => updateDocument('orders', order.id, { status: e.target.value })}
+                                     className={`pl-7 pr-4 py-2 border border-black/5 text-[10px] uppercase font-black rounded-lg outline-none cursor-pointer transition-all ${
+                                       order.status === 'Delivered' ? 'bg-green-50 text-green-700' :
+                                       order.status === 'Cancelled' ? 'bg-red-50 text-red-700' :
+                                       order.status === 'Shipped' ? 'bg-orange-50 text-orange-700' :
+                                       order.status === 'Processing' ? 'bg-blue-50 text-blue-700' : 'bg-[#F8F9FA] text-black/40'
+                                     }`}
+                                   >
+                                     {['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map(s => (
+                                       <option key={s} value={s} className="bg-white text-black">{s}</option>
+                                     ))}
+                                   </select>
+                                 </div>
                                </td>
                                <td className="p-6 text-right">
                                  <button className="p-3 bg-white border border-black/5 rounded-xl hover:bg-black hover:text-white transition-all shadow-sm">
