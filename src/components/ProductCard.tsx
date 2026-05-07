@@ -8,15 +8,18 @@ export default function ProductCard({ product }: { product: Product; key?: any }
   const addItem = useCartStore((state) => state.addItem);
   const navigate = useNavigate();
 
-  const price = Number(product.price) || 0;
+  const price = typeof product.price === 'number' 
+    ? product.price 
+    : Number(String(product.price).replace(/[^0-9.]/g, '')) || 0;
   const rawImageUrl = product.images?.[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000&auto=format&fit=crop';
   const imageUrl = rawImageUrl.startsWith('/src/assets') 
     ? rawImageUrl.replace('/src/assets', '/assets') 
     : rawImageUrl;
 
   const handleBuyNow = () => {
-    addItem({ id: product.id, name: product.name, price: price, image: imageUrl });
-    navigate('/checkout');
+    const item = { id: product.id, name: product.name, price: price, image: imageUrl };
+    addItem(item);
+    navigate('/checkout', { state: { directBuy: item } });
   };
 
   return (

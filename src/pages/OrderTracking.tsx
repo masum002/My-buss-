@@ -113,12 +113,24 @@ export default function OrderTracking() {
                        {order.items.map((item, idx) => (
                          <div key={idx} className="flex justify-between items-center text-sm">
                             <span className="text-black/60 font-medium">{item.name} x {item.quantity}</span>
-                            <span className="font-black italic">৳{item.price * item.quantity}</span>
+                            <span className="font-black italic">৳{(item.price * item.quantity).toLocaleString()}</span>
                          </div>
                        ))}
+                       <div className="space-y-2 pt-4 border-t border-black/5 opacity-60">
+                          <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                             <span>Delivery</span>
+                             <span>৳{(order.deliveryCharge || 0).toLocaleString()}</span>
+                          </div>
+                          {order.discountAmount > 0 && (
+                            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-green-600">
+                               <span>Discount</span>
+                               <span>-৳{order.discountAmount.toLocaleString()}</span>
+                            </div>
+                          )}
+                       </div>
                        <div className="pt-6 flex justify-between items-center text-xl font-black border-t border-black/5 italic tracking-tighter">
                           <span className="uppercase">Total Value</span>
-                          <span className="text-orange-500">৳{order.total}</span>
+                          <span className="text-orange-500">৳{order.total.toLocaleString()}</span>
                        </div>
                     </div>
                     

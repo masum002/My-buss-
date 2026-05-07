@@ -25,14 +25,20 @@ export const useCartStore = create<CartState>()(
       addItem: (item) => {
         const currentItems = get().items;
         const existingItem = currentItems.find((i) => i.id === item.id);
+        
+        // Ensure price is a clean number
+        const cleanPrice = typeof item.price === 'number' 
+          ? item.price 
+          : Number(String(item.price).replace(/[^0-9.]/g, '')) || 0;
+
         if (existingItem) {
           set({
             items: currentItems.map((i) =>
-              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+              i.id === item.id ? { ...i, quantity: i.quantity + 1, price: cleanPrice } : i
             ),
           });
         } else {
-          set({ items: [...currentItems, { ...item, quantity: 1 }] });
+          set({ items: [...currentItems, { ...item, price: cleanPrice, quantity: 1 }] });
         }
       },
       removeItem: (id) =>
@@ -47,8 +53,9 @@ export const useCartStore = create<CartState>()(
       getTotal: () => {
         const items = get().items;
         return items.reduce((acc, item) => {
-          const itemPrice = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
-          return acc + (itemPrice || 0) * item.quantity;
+          const itemPrice = typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0;
+          const itemQuantity = typeof item.quantity === 'number' ? item.quantity : parseInt(String(item.quantity)) || 0;
+          return acc + (itemPrice * itemQuantity);
         }, 0);
       },
     }),

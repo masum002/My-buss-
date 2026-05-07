@@ -261,7 +261,7 @@ export default function AdminDashboard() {
 
       const pData = { 
         name: productForm.name,
-        price: Number(productForm.price) || 0,
+        price: Number(String(productForm.price).replace(/[^0-9.]/g, '')) || 0,
         category: productForm.category,
         description: productForm.description,
         stock: Number(productForm.stock) || 0,

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, FormEvent, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCartStore } from '../lib/store';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { createDocument, getDocument, getCollection } from '../lib/firestore';
 import { auth, storage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -13,8 +13,25 @@ import { Coupon } from '../types';
 type Step = 'info' | 'payment' | 'success';
 
 export default function Checkout() {
-  const { items, getTotal, clearCart } = useCartStore();
-  const total = getTotal();
+  const { items, getTotal, clearCart, removeItem } = useCartStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const directBuyItem = location.state?.directBuy;
+  
+  // If directBuy, only show that item
+  const checkoutItems = directBuyItem 
+    ? [{ ...directBuyItem, quantity: 1 }] 
+    : items;
+
+  const calculateSubtotal = () => {
+    return checkoutItems.reduce((acc, item) => {
+      const price = typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0;
+      return acc + (price * item.quantity);
+    }, 0);
+  };
+
+  const subtotal = calculateSubtotal();
   const [step, setStep] = useState<Step>('info');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -22,7 +39,6 @@ export default function Checkout() {
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
 
   // Coupon State
   const [couponInput, setCouponInput] = useState('');
@@ -70,9 +86,9 @@ export default function Checkout() {
 
         // Check if it's product specific
         if (coupon.productId && coupon.productId !== 'ALL') {
-          const hasProduct = items.some(item => item.id === coupon.productId);
+          const hasProduct = checkoutItems.some(item => item.id === coupon.productId);
           if (!hasProduct) {
-            setCouponError('This coupon is not valid for the items in your cart.');
+            setCouponError('This coupon is not valid for the items in your order.');
             return;
           }
         }
@@ -96,13 +112,13 @@ export default function Checkout() {
     let discountableAmount = 0;
     if (appliedCoupon.productId && appliedCoupon.productId !== 'ALL') {
       // Only apply discount to the specific product
-      const targetItem = items.find(item => item.id === appliedCoupon.productId);
+      const targetItem = checkoutItems.find(item => item.id === appliedCoupon.productId);
       if (targetItem) {
         discountableAmount = targetItem.price * targetItem.quantity;
       }
     } else {
       // Global discount
-      discountableAmount = total;
+      discountableAmount = subtotal;
     }
 
     return (discountableAmount * appliedCoupon.discountPercentage) / 100;
@@ -110,9 +126,9 @@ export default function Checkout() {
 
   const discountAmount = calculateDiscount();
   const deliveryCharge = formData.region === 'Inside Dhaka' ? settings.deliveryInsideDhaka : settings.deliveryOutsideDhaka;
-  const grandTotal = total - discountAmount + deliveryCharge;
+  const grandTotal = subtotal - discountAmount + deliveryCharge;
 
-  if (items.length === 0 && step !== 'success') {
+  if (checkoutItems.length === 0 && step !== 'success') {
     navigate('/');
     return null;
   }
@@ -158,9 +174,9 @@ export default function Checkout() {
       customerName: formData.name,
       phoneNumber: formData.phone,
       address: formData.address,
-      items: items,
+      items: checkoutItems,
       total: grandTotal,
-      subtotal: total,
+      subtotal: subtotal,
       discountAmount: discountAmount,
       couponCode: appliedCoupon?.code || null,
       deliveryCharge: deliveryCharge,
@@ -177,7 +193,14 @@ export default function Checkout() {
       await createDocument('orders', newOrderID, orderData);
       setOrderId(newOrderID);
       setStep('success');
-      clearCart();
+      
+      // If direct buy, only remove that item from cart. If cart checkout, clear all.
+      if (directBuyItem) {
+        removeItem(directBuyItem.id);
+      } else {
+        clearCart();
+      }
+
       confetti({
         particleCount: 150,
         spread: 70,
@@ -290,6 +313,7 @@ export default function Checkout() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-8"
             >
+              {/* Secure Gateway Section */}
               <h1 className="text-4xl font-black uppercase tracking-tighter italic">Secure <span className="text-orange-500">Gateway</span></h1>
               
               <div className="grid grid-cols-2 gap-6">
@@ -373,7 +397,7 @@ export default function Checkout() {
                 </motion.div>
               )}
 
-              <div className="bg-white p-10 rounded-[3rem] border border-black/5 shadow-2xl">
+                <div className="bg-white p-10 rounded-[3rem] border border-black/5 shadow-2xl">
                 {/* Coupon Section */}
                 <div className="mb-8 p-6 bg-[#F8F9FA] rounded-[2rem] border border-black/5">
                    <p className="text-[10px] font-black uppercase text-black/30 tracking-widest mb-4 px-1">Discount Protocol</p>
@@ -416,8 +440,8 @@ export default function Checkout() {
 
                 <div className="space-y-4 mb-8 border-b border-black/5 pb-8">
                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-black/30">
-                      <span>Inventory Value</span>
-                      <span>৳{total.toLocaleString()}</span>
+                      <span>{directBuyItem ? 'Direct Order Total' : `Cart Subtotal (${checkoutItems.reduce((acc, item) => acc + item.quantity, 0)} Items)`}</span>
+                      <span className="text-black">৳{subtotal.toLocaleString()}</span>
                    </div>
                    {discountAmount > 0 && (
                      <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-green-600">

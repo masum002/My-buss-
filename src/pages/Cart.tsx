@@ -75,7 +75,7 @@ export default function Cart() {
         <div className="mt-12 p-12 bg-white border border-black/5 rounded-[3rem] shadow-xl">
           <div className="flex justify-between items-center mb-8">
             <span className="text-[10px] font-black uppercase text-black/40 tracking-widest">Order Subtotal</span>
-            <span className="text-4xl font-black italic">৳{total.toFixed(2)}</span>
+            <span className="text-4xl font-black italic">৳{total.toLocaleString()}</span>
           </div>
           <p className="text-xs text-black/40 mb-12 font-medium italic">Shipping and taxes calculated at next step. Frictionless tracking included.</p>
           

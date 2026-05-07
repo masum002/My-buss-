@@ -48,8 +48,11 @@ export interface Order {
   address: string;
   items: OrderItem[];
   total: number;
+  subtotal: number;
   discountAmount?: number;
   couponCode?: string;
+  deliveryCharge: number;
+  region: string;
   paymentMethod: PaymentMethod;
   paymentGateway?: PaymentGateway;
   transactionID?: string;
