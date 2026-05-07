@@ -69,6 +69,8 @@ export default function AdminDashboard() {
     nagadNumber: '01800-000000'
   });
 
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
@@ -485,31 +487,39 @@ export default function AdminDashboard() {
                                  </div>
                                </td>
                                <td className="p-6">
-                                 <div className="relative group/status flex items-center">
-                                   <div className={`absolute left-3 w-1.5 h-1.5 rounded-full ${
-                                     order.status === 'Delivered' ? 'bg-green-500' :
-                                     order.status === 'Cancelled' ? 'bg-red-500' :
-                                     order.status === 'Shipped' ? 'bg-orange-500' :
-                                     order.status === 'Processing' ? 'bg-blue-500' : 'bg-gray-400'
-                                   }`} />
-                                   <select 
-                                     value={order.status}
-                                     onChange={(e) => updateDocument('orders', order.id, { status: e.target.value })}
-                                     className={`pl-7 pr-4 py-2 border border-black/5 text-[10px] uppercase font-black rounded-lg outline-none cursor-pointer transition-all ${
-                                       order.status === 'Delivered' ? 'bg-green-50 text-green-700' :
-                                       order.status === 'Cancelled' ? 'bg-red-50 text-red-700' :
-                                       order.status === 'Shipped' ? 'bg-orange-50 text-orange-700' :
-                                       order.status === 'Processing' ? 'bg-blue-50 text-blue-700' : 'bg-[#F8F9FA] text-black/40'
-                                     }`}
-                                   >
-                                     {['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map(s => (
-                                       <option key={s} value={s} className="bg-white text-black">{s}</option>
-                                     ))}
-                                   </select>
+                                 <div className="flex flex-col gap-2">
+                                   <div className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase text-center w-fit border ${
+                                     order.status === 'Delivered' ? 'bg-green-50 text-green-700 border-green-200' :
+                                     order.status === 'Cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
+                                     order.status === 'Shipped' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                                     order.status === 'Processing' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-200'
+                                   }`}>
+                                     CURRENT: {order.status}
+                                   </div>
+                                   <div className="relative flex items-center">
+                                     <div className={`absolute left-3 w-1.5 h-1.5 rounded-full ${
+                                       order.status === 'Delivered' ? 'bg-green-500' :
+                                       order.status === 'Cancelled' ? 'bg-red-500' :
+                                       order.status === 'Shipped' ? 'bg-orange-500' :
+                                       order.status === 'Processing' ? 'bg-blue-500' : 'bg-gray-400'
+                                     }`} />
+                                     <select 
+                                       value={order.status}
+                                       onChange={(e) => updateDocument('orders', order.id, { status: e.target.value })}
+                                       className="pl-7 pr-4 py-2 bg-[#F8F9FA] border border-black/5 text-[10px] uppercase font-black rounded-lg outline-none cursor-pointer hover:border-orange-500 transition-all"
+                                     >
+                                       {['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map(s => (
+                                         <option key={s} value={s} className="bg-white text-black">{s}</option>
+                                       ))}
+                                     </select>
+                                   </div>
                                  </div>
                                </td>
                                <td className="p-6 text-right">
-                                 <button className="p-3 bg-white border border-black/5 rounded-xl hover:bg-black hover:text-white transition-all shadow-sm">
+                                 <button 
+                                   onClick={() => setSelectedOrder(order)}
+                                   className="p-3 bg-white border border-black/5 rounded-xl hover:bg-black hover:text-white transition-all shadow-sm"
+                                 >
                                    <Eye className="w-4 h-4" />
                                  </button>
                                </td>
@@ -862,6 +872,131 @@ export default function AdminDashboard() {
                      </button>
                   </form>
                </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Order Details Modal */}
+        <AnimatePresence>
+          {selectedOrder && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="bg-white w-full max-w-2xl rounded-[3rem] overflow-hidden shadow-2xl border border-black/5"
+              >
+                <div className="p-8 border-b border-black/5 flex justify-between items-center bg-[#F8F9FA]">
+                  <div>
+                    <h2 className="text-2xl font-black uppercase tracking-tighter italic">Order <span className="text-orange-500">{selectedOrder.orderID}</span></h2>
+                    <p className="text-[10px] font-black text-black/30 uppercase tracking-widest mt-1">Full Transaction Metadata</p>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedOrder(null)}
+                    className="p-4 bg-white rounded-2xl hover:bg-black hover:text-white transition-all shadow-sm group"
+                  >
+                    <X className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                  </button>
+                </div>
+
+                <div className="p-10 space-y-10 max-h-[70vh] overflow-y-auto">
+                  {/* Products */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Box className="w-4 h-4 text-orange-500" />
+                      <h3 className="text-[10px] font-black uppercase tracking-widest text-black/40 px-1">Order Payload</h3>
+                    </div>
+                    <div className="bg-[#F8F9FA] rounded-3xl border border-black/5 divide-y divide-black/[0.03]">
+                      {selectedOrder.items.map((item, idx) => (
+                        <div key={idx} className="p-6 flex justify-between items-center">
+                          <div className="flex gap-4 items-center">
+                             <div className="w-12 h-12 bg-white rounded-xl border border-black/5 flex items-center justify-center text-xs font-black italic shadow-inner">
+                                {idx + 1}
+                             </div>
+                             <div>
+                                <p className="font-bold uppercase tracking-tight italic">{item.name}</p>
+                                <p className="text-[10px] font-black text-black/20 uppercase tracking-widest">Qty: {item.quantity}</p>
+                             </div>
+                          </div>
+                          <p className="font-black italic text-lg tracking-tighter">৳{(item.price * item.quantity).toLocaleString()}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    {/* Customer */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Users className="w-4 h-4 text-orange-500" />
+                        <h3 className="text-[10px] font-black uppercase tracking-widest text-black/40 px-1">Identity</h3>
+                      </div>
+                      <div className="bg-white p-6 rounded-3xl border border-black/5 shadow-sm space-y-2">
+                        <p className="text-xl font-black uppercase italic tracking-tighter">{selectedOrder.customerName}</p>
+                        <p className="text-sm font-bold text-orange-500">{selectedOrder.phoneNumber}</p>
+                        <div className="pt-4 mt-4 border-t border-black/5">
+                           <div className="flex items-center gap-2 text-black/40 mb-2">
+                             <MapPin className="w-3 h-3" />
+                             <span className="text-[9px] font-black uppercase tracking-widest">Destination</span>
+                           </div>
+                           <p className="text-sm font-medium leading-relaxed italic">{selectedOrder.address}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Financials */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Banknote className="w-4 h-4 text-orange-500" />
+                        <h3 className="text-[10px] font-black uppercase tracking-widest text-black/40 px-1">Financial Analysis</h3>
+                      </div>
+                      <div className="bg-black text-white p-8 rounded-3xl shadow-xl space-y-4 relative overflow-hidden">
+                        <div className="relative z-10 space-y-3">
+                          <div className="flex justify-between items-center text-white/40">
+                             <span className="text-[10px] font-black uppercase">Subtotal</span>
+                             <span className="text-sm font-bold">৳{selectedOrder.total.toLocaleString()}</span>
+                          </div>
+                          {selectedOrder.discountAmount && selectedOrder.discountAmount > 0 && (
+                            <div className="flex justify-between items-center text-green-400">
+                               <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                 <Ticket className="w-3 h-3" />
+                                 {selectedOrder.couponCode}
+                               </span>
+                               <span className="text-sm font-bold">-৳{selectedOrder.discountAmount}</span>
+                            </div>
+                          )}
+                          <div className="pt-3 border-t border-white/10 flex justify-between items-end">
+                             <span className="text-[10px] font-black uppercase tracking-widest">Gross Total</span>
+                             <span className="text-3xl font-black italic tracking-tighter">৳{(selectedOrder.total - (selectedOrder.discountAmount || 0)).toLocaleString()}</span>
+                          </div>
+                        </div>
+                        <div className="absolute top-0 right-0 p-4 opacity-10">
+                           <Banknote className="w-20 h-20 rotate-12" />
+                        </div>
+                      </div>
+
+                      <div className="bg-[#F8F9FA] p-4 rounded-2xl border border-black/5">
+                        <p className="text-[8px] font-black text-black/30 uppercase tracking-[0.2em] mb-1">Payment Method</p>
+                        <div className="flex items-center justify-between">
+                           <span className="text-xs font-black uppercase italic">{selectedOrder.paymentMethod}</span>
+                           {selectedOrder.transactionID && (
+                             <span className="text-[10px] font-mono text-orange-500 font-bold">{selectedOrder.transactionID}</span>
+                           )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-6 bg-[#F8F9FA] border-t border-black/5 flex justify-end px-12">
+                   <button 
+                    onClick={() => setSelectedOrder(null)}
+                    className="px-10 py-4 bg-black text-white text-xs font-black rounded-xl hover:bg-orange-500 transition-all uppercase tracking-widest shadow-lg"
+                   >
+                     Acknowledge
+                   </button>
+                </div>
+              </motion.div>
             </div>
           )}
         </AnimatePresence>

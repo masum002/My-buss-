@@ -110,9 +110,9 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative bg-white border-t border-black/5 pt-12 pb-12 px-6">
+    <footer className="relative bg-white border-t border-black/5 pt-8 pb-12 px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-10">
           {/* Brand Info */}
           <div className="lg:col-span-1">
             <h3 className="text-3xl font-black italic tracking-tighter mb-6">
