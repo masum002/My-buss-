@@ -104,6 +104,10 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      // Always fetch categories to ensure product/coupon modals are populated
+      const catData = await getCollection<Category>('categories', [orderBy('createdAt', 'desc')]);
+      setCategories(catData || []);
+
       if (tab === 'orders') {
         const data = await getCollection<Order>('orders', [orderBy('createdAt', 'desc')]);
         setOrders(data || []);
@@ -116,9 +120,6 @@ export default function AdminDashboard() {
       } else if (tab === 'admins') {
         const data = await getCollection<Admin>('admins', [orderBy('addedAt', 'desc')]);
         setAdminsList(data || []);
-      } else if (tab === 'categories') {
-        const data = await getCollection<Category>('categories', [orderBy('createdAt', 'desc')]);
-        setCategories(data || []);
       } else if (tab === 'settings') {
         const data = await getDocument<any>('settings', 'global');
         if (data) setSettings(data);
@@ -1390,16 +1391,14 @@ export default function AdminDashboard() {
                                className="w-full bg-[#F8F9FA] border border-black/5 p-5 rounded-2xl font-black text-sm shadow-inner focus:border-orange-500 outline-none cursor-pointer"
                             >
                                <option value="" disabled>Select Category</option>
-                               {categories.map(c => (
+                               <option value="Offers">Offers</option>
+                               <option value="Top Sell">Top Sell</option>
+                               <option value="Audio">Audio</option>
+                               <option value="Keyboards">Keyboards</option>
+                               <option value="Watches">Watches</option>
+                               {categories.filter(c => !['Offers', 'Top Sell', 'Audio', 'Keyboards', 'Watches'].includes(c.name)).map(c => (
                                  <option key={c.id} value={c.name}>{c.name}</option>
                                ))}
-                               {categories.length === 0 && (
-                                 <>
-                                   <option value="Watches">Watches</option>
-                                   <option value="Audio">Audio</option>
-                                   <option value="Keyboards">Keyboards</option>
-                                 </>
-                               )}
                             </select>
                          </div>
                       </div>
