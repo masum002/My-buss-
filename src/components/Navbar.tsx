@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Search, MoreHorizontal, Package, LayoutDashboard, X, ArrowRight, Zap } from 'lucide-react';
+import { ShoppingCart, Search, MoreHorizontal, Package, X, ArrowRight, Zap, Info, Shield, HelpCircle, LayoutGrid } from 'lucide-react';
 import { useCartStore } from '../lib/store';
 import { motion, AnimatePresence } from 'motion/react';
 import { getCollection } from '../lib/firestore';
@@ -98,32 +98,57 @@ export default function Navbar() {
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       className="absolute right-0 mt-4 w-64 bg-white rounded-3xl shadow-2xl p-4 border border-black/5 z-20 overflow-hidden"
                     >
-                      <div className="space-y-2">
+                      <div className="space-y-1">
+                        <Link 
+                          to="/#shop" 
+                          onClick={() => setIsMenuOpen(false)}
+                          className="flex items-center justify-between p-3 hover:bg-[#F8F9FA] rounded-xl transition-all group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <LayoutGrid className="w-4 h-4 text-orange-500" />
+                            <span className="text-[10px] font-black uppercase tracking-widest italic">Categories</span>
+                          </div>
+                        </Link>
                         <Link 
                           to="/track" 
                           onClick={() => setIsMenuOpen(false)}
-                          className="flex items-center justify-between p-4 bg-[#F8F9FA] rounded-2xl hover:bg-black hover:text-white transition-all group"
+                          className="flex items-center justify-between p-3 hover:bg-[#F8F9FA] rounded-xl transition-all group"
                         >
                           <div className="flex items-center gap-3">
                             <Package className="w-4 h-4 text-orange-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest italic">Track Order</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest italic">Logistics</span>
                           </div>
-                          <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all" />
                         </Link>
-                        <Link 
-                          to="/FrenZway" 
-                          onClick={() => setIsMenuOpen(false)}
-                          className="flex items-center justify-between p-4 bg-[#F8F9FA] rounded-2xl hover:bg-black hover:text-white transition-all group"
+                        <button 
+                          onClick={() => { setIsMenuOpen(false); navigate('/about'); }}
+                          className="w-full flex items-center justify-between p-3 hover:bg-[#F8F9FA] rounded-xl transition-all group"
                         >
                           <div className="flex items-center gap-3">
-                            <LayoutDashboard className="w-4 h-4 text-orange-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest italic">Operations</span>
+                            <Info className="w-4 h-4 text-orange-500" />
+                            <span className="text-[10px] font-black uppercase tracking-widest italic">About Me</span>
                           </div>
-                          <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all" />
-                        </Link>
+                        </button>
+                        <button 
+                          onClick={() => { setIsMenuOpen(false); navigate('/support'); }}
+                          className="w-full flex items-center justify-between p-3 hover:bg-[#F8F9FA] rounded-xl transition-all group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <HelpCircle className="w-4 h-4 text-orange-500" />
+                            <span className="text-[10px] font-black uppercase tracking-widest italic">Support</span>
+                          </div>
+                        </button>
+                        <button 
+                          onClick={() => { setIsMenuOpen(false); navigate('/terms'); }}
+                          className="w-full flex items-center justify-between p-3 hover:bg-[#F8F9FA] rounded-xl transition-all group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Shield className="w-4 h-4 text-orange-500" />
+                            <span className="text-[10px] font-black uppercase tracking-widest italic">Protocol</span>
+                          </div>
+                        </button>
                       </div>
                       <div className="mt-4 pt-4 border-t border-black/5">
-                        <p className="text-center text-[8px] font-black uppercase tracking-[0.3em] text-black/20">FrenZway Protocol v1.4</p>
+                        <p className="text-center text-[7px] font-black uppercase tracking-[0.4em] text-black/20">FrenZway Terminal v2.1</p>
                       </div>
                     </motion.div>
                   </>

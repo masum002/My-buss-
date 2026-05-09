@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getCollection, updateDocument, addDocument, deleteDocument, getDocument, createDocument } from '../lib/firestore';
-import { Product, Order, OrderStatus } from '../types';
+import { Product, Order, OrderStatus, Category } from '../types';
 import { auth, storage } from '../lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -14,12 +14,13 @@ import {
 
 import { Coupon, Admin } from '../types';
 
-type Tab = 'orders' | 'products' | 'coupons' | 'admins' | 'settings';
+type Tab = 'orders' | 'products' | 'categories' | 'coupons' | 'admins' | 'settings';
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState<Tab>('orders');
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [adminsList, setAdminsList] = useState<Admin[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,7 +34,7 @@ export default function AdminDashboard() {
   const [productForm, setProductForm] = useState({
     name: '',
     price: '',
-    category: 'Electronics',
+    category: '',
     description: '',
     stock: '',
     imageUrl: '',
@@ -66,10 +67,17 @@ export default function AdminDashboard() {
     deliveryInsideDhaka: 60,
     deliveryOutsideDhaka: 120,
     bkashNumber: '01700-000000',
-    nagadNumber: '01800-000000'
+    bkashType: 'Personal',
+    nagadNumber: '01800-000000',
+    nagadType: 'Personal'
   });
 
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  // Category Form State
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [categoryForm, setCategoryForm] = useState({ name: '' });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
@@ -108,6 +116,9 @@ export default function AdminDashboard() {
       } else if (tab === 'admins') {
         const data = await getCollection<Admin>('admins', [orderBy('addedAt', 'desc')]);
         setAdminsList(data || []);
+      } else if (tab === 'categories') {
+        const data = await getCollection<Category>('categories', [orderBy('createdAt', 'desc')]);
+        setCategories(data || []);
       } else if (tab === 'settings') {
         const data = await getDocument<any>('settings', 'global');
         if (data) setSettings(data);
@@ -137,6 +148,51 @@ export default function AdminDashboard() {
   };
 
   const isSuperAdmin = user?.email === 'mahfujar003@gmail.com' || userRole === 'super';
+
+  // Order Management
+  const handleDeleteOrder = async (id: string) => {
+    if (confirm("Permanently delete this order record? This cannot be undone.")) {
+      await deleteDocument('orders', id);
+      fetchData();
+    }
+  };
+
+  // Category Management
+  const handleCategorySubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const slug = categoryForm.name.toLowerCase().trim().replace(/\s+/g, '-');
+      const cData = {
+        name: categoryForm.name,
+        slug,
+        createdAt: Timestamp.now()
+      };
+
+      if (!editingCategory) {
+        await addDocument('categories', cData);
+      } else {
+        await updateDocument('categories', editingCategory.id, cData);
+      }
+      
+      setShowCategoryModal(false);
+      setEditingCategory(null);
+      setCategoryForm({ name: '' });
+      fetchData();
+      alert("Category structure updated.");
+    } catch (err) {
+      alert("Failed to save category.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (confirm("Delete this category? Products in this category will remain, but the filter will be removed.")) {
+      await deleteDocument('categories', id);
+      fetchData();
+    }
+  };
 
   // Admin Management Actions
   const handleAddAdmin = async (e: FormEvent) => {
@@ -396,20 +452,35 @@ export default function AdminDashboard() {
             {[
               { id: 'orders', label: 'Orders', icon: ListOrdered },
               { id: 'products', label: 'Inventory', icon: Box },
+              { id: 'categories', label: 'Segments', icon: Filter },
               { id: 'coupons', label: 'Coupons', icon: Ticket },
               ...(isSuperAdmin ? [{ id: 'admins', label: 'Admins', icon: ShieldCheck }] : []),
               { id: 'settings', label: 'Config', icon: Settings }
             ].map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id as Tab)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black transition-all ${
-                  tab === t.id ? 'bg-black text-white shadow-lg' : 'text-black/40 hover:text-black'
-                }`}
-              >
-                <t.icon className="w-4 h-4" />
-                {t.label}
-              </button>
+              t.id === 'orders' ? (
+                <div className="relative" key={t.id}>
+                  <button
+                    onClick={() => setTab(t.id as Tab)}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black transition-all ${
+                      tab === t.id ? 'bg-black text-white shadow-lg' : 'text-black/40 hover:text-black'
+                    }`}
+                  >
+                    <t.icon className="w-4 h-4" />
+                    {t.label}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id as Tab)}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black transition-all ${
+                    tab === t.id ? 'bg-black text-white shadow-lg' : 'text-black/40 hover:text-black'
+                  }`}
+                >
+                  <t.icon className="w-4 h-4" />
+                  {t.label}
+                </button>
+              )
             ))}
             <div className="w-px h-6 bg-black/5 mx-2" />
             <button onClick={handleLogout} className="p-4 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm">
@@ -516,12 +587,20 @@ export default function AdminDashboard() {
                                  </div>
                                </td>
                                <td className="p-6 text-right">
-                                 <button 
-                                   onClick={() => setSelectedOrder(order)}
-                                   className="p-3 bg-white border border-black/5 rounded-xl hover:bg-black hover:text-white transition-all shadow-sm"
-                                 >
-                                   <Eye className="w-4 h-4" />
-                                 </button>
+                                 <div className="flex justify-end gap-2">
+                                   <button 
+                                     onClick={() => setSelectedOrder(order)}
+                                     className="p-3 bg-white border border-black/5 rounded-xl hover:bg-black hover:text-white transition-all shadow-sm"
+                                   >
+                                     <Eye className="w-4 h-4" />
+                                   </button>
+                                   <button 
+                                     onClick={() => handleDeleteOrder(order.id)}
+                                     className="p-3 bg-red-50 text-red-500 border border-red-100 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                                   >
+                                     <Trash2 className="w-4 h-4" />
+                                   </button>
+                                 </div>
                                </td>
                             </tr>
                           ))}
@@ -741,6 +820,53 @@ export default function AdminDashboard() {
                 </div>
              )}
 
+              {tab === 'categories' && (
+                <div className="space-y-8">
+                  <div className="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-[2rem] border border-black/5 gap-6 shadow-sm">
+                    <div className="flex-1">
+                       <h2 className="text-xl font-black uppercase tracking-tighter italic">Market Segments</h2>
+                       <p className="text-xs text-black/40 font-medium">Define your store's structural hierarchy.</p>
+                    </div>
+                    <button 
+                      onClick={() => { setEditingCategory(null); setCategoryForm({ name: '' }); setShowCategoryModal(true); }}
+                      className="flex items-center gap-3 px-8 py-4 bg-black text-white font-black rounded-xl hover:bg-orange-500 transition-all shadow-xl active:scale-95 text-xs uppercase tracking-widest"
+                    >
+                      <Plus className="w-4 h-4" />
+                      NEW CATEGORY
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {categories.map(cat => (
+                      <div key={cat.id} className="bg-white border border-black/5 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
+                         <div className="relative z-10">
+                            <h3 className="text-xl font-black italic tracking-tighter mb-2 uppercase">{cat.name}</h3>
+                            <p className="text-[10px] text-black/20 font-black uppercase tracking-widest italic mb-6">Slug: {cat.slug}</p>
+                            <div className="flex gap-2">
+                               <button 
+                                onClick={() => { 
+                                  setEditingCategory(cat); 
+                                  setCategoryForm({ name: cat.name }); 
+                                  setShowCategoryModal(true); 
+                                }} 
+                                className="px-4 py-2 bg-[#F8F9FA] text-[10px] font-black uppercase rounded-lg border border-black/5 hover:bg-black hover:text-white transition-all"
+                               >
+                                 Edit
+                               </button>
+                               <button 
+                                onClick={() => handleDeleteCategory(cat.id)} 
+                                className="px-4 py-2 bg-red-50 text-red-500 text-[10px] font-black uppercase rounded-lg border border-red-100 hover:bg-red-500 hover:text-white transition-all"
+                               >
+                                 Delete
+                               </button>
+                            </div>
+                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
              {tab === 'settings' && (
               <div className="max-w-3xl mx-auto space-y-8">
                  <div className="bg-white p-12 rounded-[3.5rem] border border-black/5 space-y-12 shadow-sm">
@@ -783,23 +909,49 @@ export default function AdminDashboard() {
                           <h2 className="text-3xl font-black uppercase tracking-tighter italic">Finance Routing</h2>
                        </div>
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                          <div className="space-y-4">
-                             <label className="text-[10px] font-black uppercase text-black/30 tracking-[0.2em] block mb-2 px-1">bKash Terminal</label>
-                             <input 
-                                type="text" 
-                                value={settings.bkashNumber}
-                                onChange={e => setSettings({...settings, bkashNumber: e.target.value})}
-                                className="w-full bg-[#F8F9FA] border border-black/5 p-6 rounded-[2rem] focus:border-orange-500 outline-none font-black text-sm uppercase shadow-inner" 
-                             />
+                          <div className="space-y-6">
+                             <div className="space-y-4">
+                                <label className="text-[10px] font-black uppercase text-black/30 tracking-[0.2em] block mb-2 px-1">bKash Terminal</label>
+                                <input 
+                                   type="text" 
+                                   value={settings.bkashNumber}
+                                   onChange={e => setSettings({...settings, bkashNumber: e.target.value})}
+                                   className="w-full bg-[#F8F9FA] border border-black/5 p-6 rounded-[2rem] focus:border-orange-500 outline-none font-black text-sm uppercase shadow-inner" 
+                                />
+                             </div>
+                             <div className="flex gap-2 p-1 bg-[#F8F9FA] rounded-2xl border border-black/5">
+                                {['Personal', 'Agent'].map(t => (
+                                  <button
+                                    key={t}
+                                    onClick={() => setSettings({...settings, bkashType: t})}
+                                    className={`flex-1 py-3 text-[10px] font-black uppercase rounded-xl transition-all ${settings.bkashType === t ? 'bg-black text-white shadow-lg' : 'text-black/30 hover:text-black'}`}
+                                  >
+                                    {t}
+                                  </button>
+                                ))}
+                             </div>
                           </div>
-                          <div className="space-y-4">
-                             <label className="text-[10px] font-black uppercase text-black/30 tracking-[0.2em] block mb-2 px-1">Nagad System</label>
-                             <input 
-                                type="text" 
-                                value={settings.nagadNumber}
-                                onChange={e => setSettings({...settings, nagadNumber: e.target.value})}
-                                className="w-full bg-[#F8F9FA] border border-black/5 p-6 rounded-[2rem] focus:border-orange-500 outline-none font-black text-sm uppercase shadow-inner" 
-                             />
+                          <div className="space-y-6">
+                             <div className="space-y-4">
+                                <label className="text-[10px] font-black uppercase text-black/30 tracking-[0.2em] block mb-2 px-1">Nagad System</label>
+                                <input 
+                                   type="text" 
+                                   value={settings.nagadNumber}
+                                   onChange={e => setSettings({...settings, nagadNumber: e.target.value})}
+                                   className="w-full bg-[#F8F9FA] border border-black/5 p-6 rounded-[2rem] focus:border-orange-500 outline-none font-black text-sm uppercase shadow-inner" 
+                                />
+                             </div>
+                             <div className="flex gap-2 p-1 bg-[#F8F9FA] rounded-2xl border border-black/5">
+                                {['Personal', 'Agent'].map(t => (
+                                  <button
+                                    key={t}
+                                    onClick={() => setSettings({...settings, nagadType: t})}
+                                    className={`flex-1 py-3 text-[10px] font-black uppercase rounded-xl transition-all ${settings.nagadType === t ? 'bg-black text-white shadow-lg' : 'text-black/30 hover:text-black'}`}
+                                  >
+                                    {t}
+                                  </button>
+                                ))}
+                             </div>
                           </div>
                        </div>
                     </div>
@@ -816,6 +968,50 @@ export default function AdminDashboard() {
               </div>
             )}
           </motion.div>
+        </AnimatePresence>
+
+        {/* Category Modal */}
+        <AnimatePresence>
+           {showCategoryModal && (
+             <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-white/60 backdrop-blur-xl">
+                <motion.div 
+                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                   animate={{ opacity: 1, scale: 1, y: 0 }}
+                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                   className="w-full max-w-lg bg-white border border-black/5 rounded-[3.5rem] overflow-hidden shadow-2xl"
+                >
+                   <div className="flex justify-between items-center p-8 border-b border-black/5 bg-[#F8F9FA]/50">
+                      <h2 className="text-2xl font-black uppercase tracking-tighter italic">
+                         {editingCategory ? 'Edit' : 'Define'} <span className="text-orange-500 text-stroke-black">Segment</span>
+                      </h2>
+                      <button onClick={() => setShowCategoryModal(false)} className="p-3 bg-black text-white rounded-full hover:bg-orange-500 transition-all shadow-lg active:scale-95">
+                         <X className="w-6 h-6" />
+                      </button>
+                   </div>
+
+                   <form onSubmit={handleCategorySubmit} className="p-10 space-y-8">
+                      <div className="space-y-3">
+                         <label className="text-[10px] font-black uppercase text-black/30 tracking-[0.2em] block px-1">Segment Name</label>
+                         <input 
+                           type="text" 
+                           required
+                           value={categoryForm.name}
+                           onChange={e => setCategoryForm({ name: e.target.value })}
+                           className="w-full bg-[#F8F9FA] border border-black/5 p-6 rounded-2xl font-black text-xl shadow-inner focus:border-orange-500 outline-none" 
+                           placeholder="GADGETS"
+                         />
+                      </div>
+
+                      <button 
+                        disabled={loading}
+                        className="w-full py-6 bg-black text-white font-black text-xs uppercase tracking-[0.4em] rounded-[2.5rem] hover:bg-orange-500 transition-all active:scale-95 shadow-2xl"
+                      >
+                        {loading ? 'SYNCHRONIZING...' : editingCategory ? 'UPDATE SEGMENT' : 'INITIALIZE SEGMENT'}
+                      </button>
+                   </form>
+                </motion.div>
+             </div>
+           )}
         </AnimatePresence>
 
         {/* Admin Modal */}
@@ -1083,6 +1279,46 @@ export default function AdminDashboard() {
            )}
         </AnimatePresence>
 
+         {/* Category Modal */}
+         <AnimatePresence>
+            {showCategoryModal && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-white/60 backdrop-blur-xl">
+                 <motion.div 
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    className="w-full max-w-md bg-white border border-black/5 rounded-[3.5rem] overflow-hidden shadow-2xl"
+                 >
+                    <div className="flex justify-between items-center p-8 border-b border-black/5 bg-[#F8F9FA]/50">
+                       <h2 className="text-2xl font-black uppercase tracking-tighter italic">
+                          {editingCategory ? 'Edit' : 'New'} <span className="text-orange-500">Segment</span>
+                       </h2>
+                       <button onClick={() => setShowCategoryModal(false)} className="p-3 bg-black text-white rounded-full hover:bg-orange-500 transition-all shadow-lg">
+                          <X className="w-6 h-6" />
+                       </button>
+                    </div>
+
+                    <form onSubmit={handleCategorySubmit} className="p-10 space-y-8">
+                       <div className="space-y-4">
+                          <label className="text-[10px] font-black uppercase text-black/30 tracking-[0.2em] block px-1">Category Name</label>
+                          <input 
+                            type="text" 
+                            required
+                            value={categoryForm.name}
+                            onChange={e => setCategoryForm({ name: e.target.value })}
+                            className="w-full bg-[#F8F9FA] border border-black/5 p-6 rounded-2xl font-black text-lg focus:border-orange-500 outline-none" 
+                            placeholder="SEGMENT NAME"
+                          />
+                       </div>
+                       <button className="w-full py-6 bg-black text-white font-black text-xs uppercase tracking-[0.4em] rounded-[2rem] hover:bg-orange-500 transition-all shadow-xl active:scale-95">
+                         {editingCategory ? 'UPDATE SEGMENT' : 'INITIALIZE SEGMENT'}
+                       </button>
+                    </form>
+                 </motion.div>
+              </div>
+            )}
+         </AnimatePresence>
+
         {/* Product Modal */}
         <AnimatePresence>
            {showProductModal && (
@@ -1145,16 +1381,25 @@ export default function AdminDashboard() {
                              />
                           </div>
 
-                         <div className="space-y-3">
+                          <div className="space-y-3">
                             <label className="text-[10px] font-black uppercase text-black/30 tracking-[0.2em] block px-1">Category Segment</label>
                             <select 
                                value={productForm.category}
+                               required
                                onChange={e => setProductForm({...productForm, category: e.target.value})}
                                className="w-full bg-[#F8F9FA] border border-black/5 p-5 rounded-2xl font-black text-sm shadow-inner focus:border-orange-500 outline-none cursor-pointer"
                             >
-                               {['Watches', 'Audio', 'Keyboards', 'Luxury', 'Ecosystem'].map(c => (
-                                 <option key={c} value={c}>{c}</option>
+                               <option value="" disabled>Select Category</option>
+                               {categories.map(c => (
+                                 <option key={c.id} value={c.name}>{c.name}</option>
                                ))}
+                               {categories.length === 0 && (
+                                 <>
+                                   <option value="Watches">Watches</option>
+                                   <option value="Audio">Audio</option>
+                                   <option value="Keyboards">Keyboards</option>
+                                 </>
+                               )}
                             </select>
                          </div>
                       </div>

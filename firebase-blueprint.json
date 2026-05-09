@@ -60,6 +60,17 @@
         "addedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["email", "role"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "A product category segment",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "slug"]
     }
   },
   "firestore": {
@@ -70,6 +81,10 @@
     "orders": {
       "schema": "Order",
       "description": "Collection of all customer orders"
+    },
+    "categories": {
+      "schema": "Category",
+      "description": "Collection of product categories"
     },
     "admins": {
       "schema": "Admin",

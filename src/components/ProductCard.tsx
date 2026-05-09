@@ -51,32 +51,40 @@ export default function ProductCard({ product }: { product: Product; key?: any }
         </div>
       </Link>
       
-      <div className="p-4 md:p-6">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-2 gap-1">
-          <h3 className="text-black font-black text-sm md:text-lg leading-tight group-hover:text-orange-500 transition-colors uppercase italic line-clamp-2 md:line-clamp-none">
+      <div className="p-4 md:p-6 flex flex-col flex-grow">
+        <div className="mb-4">
+          <p className="text-black/30 text-[8px] md:text-[10px] uppercase font-black tracking-widest mb-1">
+            {product.category}
+          </p>
+          <h3 className="text-black font-black text-sm md:text-xl leading-tight group-hover:text-orange-500 transition-colors uppercase italic line-clamp-2 min-h-[2.5rem] md:min-h-0">
             {product.name}
           </h3>
-          <span className="text-orange-500 font-black text-lg md:text-xl italic">৳{price.toLocaleString()}</span>
         </div>
-        <p className="text-black/40 text-[9px] md:text-[10px] uppercase font-black tracking-widest mb-4 md:mb-6 px-1">
-          {product.category}
-        </p>
         
-        <div className="grid grid-cols-2 gap-2 md:gap-3">
-          <button
-            onClick={() => addItem({ id: product.id, name: product.name, price: price, image: imageUrl })}
-            className="py-3 md:py-4 bg-[#F8F9FA] border border-black/5 text-black text-[9px] md:text-[10px] font-black rounded-xl md:rounded-2xl flex items-center justify-center gap-1.5 md:gap-2 hover:bg-black hover:text-white transition-all active:scale-95 uppercase tracking-tighter"
-          >
-            <ShoppingBag className="w-3 h-3" />
-            + Cart
-          </button>
-          <button
-            onClick={handleBuyNow}
-            className="py-3 md:py-4 bg-black text-white text-[9px] md:text-[10px] font-black rounded-xl md:rounded-2xl flex items-center justify-center gap-1.5 md:gap-2 hover:bg-orange-500 transition-all active:scale-95 uppercase shadow-xl shadow-black/10 tracking-tighter"
-          >
-            <Zap className="w-3 h-3 fill-current" />
-            Order
-          </button>
+        <div className="mt-auto">
+          <div className="flex items-center justify-between mb-4">
+             <span className="text-orange-500 font-black text-xl md:text-2xl italic tracking-tighter">৳{price.toLocaleString()}</span>
+             {product.stock <= 5 && product.stock > 0 && (
+               <span className="text-[8px] font-black uppercase text-red-500 bg-red-50 px-2 py-0.5 rounded-md border border-red-100">Low Stock</span>
+             )}
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => addItem({ id: product.id, name: product.name, price: price, image: imageUrl })}
+              className="py-3 bg-[#F8F9FA] border border-black/5 text-black text-[9px] font-black rounded-xl flex items-center justify-center gap-1.5 hover:bg-black hover:text-white transition-all active:scale-95 uppercase"
+            >
+              <ShoppingBag className="w-3.5 h-3.5" />
+              <span>Cart</span>
+            </button>
+            <button
+              onClick={handleBuyNow}
+              className="py-3 bg-black text-white text-[9px] font-black rounded-xl flex items-center justify-center gap-1.5 hover:bg-orange-500 transition-all active:scale-95 uppercase shadow-xl shadow-black/10"
+            >
+              <Zap className="w-3.5 h-3.5 fill-current" />
+              <span>Buy</span>
+            </button>
+          </div>
         </div>
       </div>
     </motion.div>

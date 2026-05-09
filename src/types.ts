@@ -40,6 +40,13 @@ export interface Coupon {
   createdAt: any;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: any;
+}
+
 export interface Order {
   id: string;
   orderID: string;

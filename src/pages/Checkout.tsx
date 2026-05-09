@@ -381,7 +381,9 @@ export default function Checkout() {
                     <p className="text-2xl font-black text-black italic">
                       {formData.paymentGateway === 'bKash' ? settings.bkashNumber : settings.nagadNumber}
                     </p>
-                    <p className="text-[9px] text-orange-500 opacity-70 uppercase tracking-widest font-black mt-3">Verified Merchant Terminal</p>
+                    <p className="text-[9px] text-orange-500 opacity-70 uppercase tracking-widest font-black mt-3">
+                      Verified {formData.paymentGateway === 'bKash' ? settings.bkashType : settings.nagadType} Terminal
+                    </p>
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-black/30 block mb-3 px-1 tracking-widest">Authorization Hash (Transaction ID)</label>

@@ -3,11 +3,14 @@ import { motion } from 'motion/react';
 import { getCollection } from '../lib/firestore';
 import { Product } from '../types';
 import ProductCard from '../components/ProductCard';
-import { ShoppingBag, Star, Zap, ShieldCheck, Flame, TrendingUp, Grid } from 'lucide-react';
+import { ShoppingBag, Star, Zap, ShieldCheck, Flame, TrendingUp, Grid, Tag } from 'lucide-react';
 import { seedDatabase } from '../lib/seed';
+import { Category } from '../types';
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,10 +22,14 @@ export default function Home() {
       }
       
       try {
-        const data = await getCollection<Product>('products');
-        setProducts(data || []);
+        const [prodData, catData] = await Promise.all([
+          getCollection<Product>('products'),
+          getCollection<Category>('categories')
+        ]);
+        setProducts(prodData || []);
+        setCategories(catData || []);
       } catch (e) {
-        console.error("Failed to load products:", e);
+        console.error("Failed to load data:", e);
       } finally {
         setLoading(false);
       }
@@ -30,32 +37,16 @@ export default function Home() {
     init();
   }, []);
 
-  const hotDeals = products.filter(p => p.isHot);
-  const topSales = products.filter(p => p.isTopSale);
-  const regularProducts = products.filter(p => !p.isHot && !p.isTopSale);
+  const filteredProducts = selectedCategory === 'all' 
+    ? products 
+    : products.filter(p => p.category === selectedCategory);
 
-  const categories = Array.from(new Set(products.map(p => p.category)));
+  const hotDeals = filteredProducts.filter(p => p.isHot);
+  const topSales = filteredProducts.filter(p => p.isTopSale);
+  const regularProducts = filteredProducts.filter(p => !p.isHot && !p.isTopSale);
 
   return (
     <div className="pt-24 min-h-screen bg-[#F4F5F7] text-[#1A1A1A]">
-      {/* Hot Deals Area */}
-      {hotDeals.length > 0 && (
-        <section className="py-20 px-4 max-w-7xl mx-auto bg-white rounded-[4rem] mb-20 border border-black/5 shadow-sm">
-          <div className="flex items-center gap-4 mb-16 px-8">
-             <div className="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center shadow-lg">
-                <Flame className="w-6 h-6" />
-             </div>
-             <div>
-                <h2 className="text-4xl font-black uppercase tracking-tighter">Hot <span className="text-orange-500">Deals</span></h2>
-                <p className="text-black/40 text-sm">সীমিত সময়ের সেরা অফারগুলো এখানে।</p>
-             </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 px-4">
-             {hotDeals.map(p => <ProductCard key={p.id} product={p as Product} />)}
-          </div>
-        </section>
-      )}
-
       {/* Main Shopping Hub */}
       <section id="shop" className="py-20 px-4 max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
@@ -67,28 +58,73 @@ export default function Home() {
             <h2 className="text-5xl font-black uppercase tracking-tighter leading-none italic">Fren<span className="text-orange-500">Zway</span></h2>
             <p className="text-black/40 text-sm mt-4 max-w-md font-medium">এক্সক্লুসিভ কালেকশন থেকে আপনার পছন্দের পণ্যটি বেছে নিন।</p>
           </div>
-          <div className="flex bg-white p-1 rounded-2xl border border-black/5 shadow-sm">
-             <button className="px-6 py-3 bg-black text-white rounded-xl text-[10px] font-black uppercase shadow-xl">All Items</button>
-             {categories.slice(0, 3).map(c => (
-               <button key={c} className="px-6 py-3 text-white/40 hover:text-white rounded-xl text-[10px] font-black uppercase transition-colors">{c}</button>
+          
+          <div className="flex bg-white p-1 rounded-2xl border border-black/5 shadow-sm overflow-x-auto no-scrollbar max-w-full">
+             <button 
+                onClick={() => setSelectedCategory('all')}
+                className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${selectedCategory === 'all' ? 'bg-black text-white shadow-xl' : 'text-black/40 hover:text-black'}`}
+             >
+               All Items
+             </button>
+             {categories.map(c => (
+               <button 
+                  key={c.id} 
+                  onClick={() => setSelectedCategory(c.name)}
+                  className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${selectedCategory === c.name ? 'bg-black text-white shadow-xl' : 'text-black/40 hover:text-black'}`}
+               >
+                 {c.name}
+               </button>
              ))}
           </div>
         </div>
 
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-10">
-            {[1, 2, 3, 4].map(i => <div key={i} className="aspect-[4/5] bg-white/5 animate-pulse rounded-[3rem]" />)}
+            {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="aspect-[4/5] bg-white animate-pulse rounded-[3rem] border border-black/5" />)}
           </div>
         ) : (
           <div className="space-y-32">
              {/* General Listing */}
-             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-10">
-               {regularProducts.map(p => <ProductCard key={p.id} product={p as Product} />)}
-             </div>
+             {regularProducts.length > 0 ? (
+               <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-10">
+                 {regularProducts.map(p => <ProductCard key={p.id} product={p as Product} />)}
+               </div>
+             ) : selectedCategory !== 'all' && (
+               <div className="text-center py-20 bg-white border border-dashed border-black/10 rounded-[3rem]">
+                  <ShoppingBag className="w-12 h-12 text-black/5 mx-auto mb-4" />
+                  <p className="text-black/40 font-medium italic">No products found in this category segment.</p>
+               </div>
+             )}
+
+             {/* Offer Section */}
+             {hotDeals.length > 0 && (
+                <div className="bg-white rounded-[4rem] p-12 border border-black/5 shadow-lg overflow-hidden relative">
+                   <div className="absolute -top-24 -right-24 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl" />
+                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 px-4 relative z-10">
+                      <div className="flex items-center gap-6">
+                         <div className="w-16 h-16 bg-orange-500 text-white rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-orange-500/20 rotate-3">
+                            <Tag className="w-8 h-8" />
+                         </div>
+                         <div>
+                            <h2 className="text-5xl font-black uppercase tracking-tighter leading-none italic">Special <br/><span className="text-orange-500">Offers</span></h2>
+                            <p className="text-black/40 text-xs font-black uppercase tracking-widest mt-2 px-1">Exclusive Value Projections</p>
+                         </div>
+                      </div>
+                      <div className="bg-[#F8F9FA] px-10 py-6 rounded-[2.5rem] border border-black/5 shadow-sm">
+                         <p className="text-[10px] text-black/20 uppercase font-black tracking-[0.3em] mb-2">Offer Protocol Active</p>
+                         <p className="text-2xl font-black text-black uppercase italic tracking-tighter">Limited Quantities</p>
+                      </div>
+                   </div>
+                   <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10 relative z-10">
+                      {hotDeals.map(p => <ProductCard key={p.id} product={p as Product} />)}
+                   </div>
+                </div>
+             )}
 
            {/* Top Sales Highlight */}
              {topSales.length > 0 && (
-               <div className="bg-white rounded-[4rem] p-12 border border-black/5 shadow-lg">
+               <div className="bg-black text-white rounded-[4rem] p-12 shadow-2xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-full h-full bg-orange-500/10 pointer-events-none" />
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 px-4">
                      <div className="flex items-center gap-6">
                         <div className="w-16 h-16 bg-black text-white rounded-[2.5rem] flex items-center justify-center shadow-2xl rotate-3">
