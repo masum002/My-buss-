@@ -83,11 +83,13 @@ export default function AdminDashboard() {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
-        // Fetch role
-        const adminDoc = await getDocument<Admin>('admins', u.email || '');
+        // Fetch role - lowercase email for case-insensitive lookup
+        const lowerEmail = (u.email || '').toLowerCase();
+        const adminDoc = await getDocument<Admin>('admins', lowerEmail);
+        
         if (adminDoc) {
           setUserRole(adminDoc.role);
-        } else if (u.email === 'mahfujar003@gmail.com') {
+        } else if (lowerEmail === 'mahfujar003@gmail.com') {
           setUserRole('super');
         } else {
           setUserRole(null);
@@ -408,22 +410,39 @@ export default function AdminDashboard() {
     }
   };
 
-  if (!user) {
+  if (!user || userRole === null) {
     return (
       <div className="pt-32 min-h-screen bg-[#F4F5F7] text-[#1A1A1A] flex flex-col items-center justify-center p-4">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
           <div className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center mb-8 border border-black/5 mx-auto shadow-xl">
             <Lock className="w-10 h-10 text-black" />
           </div>
-          <h2 className="text-3xl font-black uppercase mb-4 tracking-tighter italic">Authorized <span className="text-orange-500">Access</span></h2>
-          <p className="text-black/40 mb-10 max-w-xs mx-auto text-sm font-medium">Welcome back, Owner. Authenticate to manage your tech empire.</p>
-          <button 
-            onClick={handleLogin}
-            className="flex items-center gap-3 px-12 py-5 bg-black text-white font-black rounded-2xl hover:bg-orange-500 transition-all active:scale-95 group shadow-xl"
-          >
-            <Smartphone className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-            ENTER COMMAND CENTER
-          </button>
+          <h2 className="text-3xl font-black uppercase mb-4 tracking-tighter italic">
+            {user ? 'Unauthorized' : 'Authorized'} <span className="text-orange-500">Access</span>
+          </h2>
+          <p className="text-black/40 mb-10 max-w-xs mx-auto text-sm font-medium">
+            {user 
+              ? `The account ${user.email} does not have administrative privileges. Please contact the system owner.`
+              : 'Welcome back, Operator. Authenticate to manage your tech empire.'
+            }
+          </p>
+          {!user ? (
+            <button 
+              onClick={handleLogin}
+              className="flex items-center gap-3 px-12 py-5 bg-black text-white font-black rounded-2xl hover:bg-orange-500 transition-all active:scale-95 group shadow-xl"
+            >
+              <Smartphone className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+              ENTER COMMAND CENTER
+            </button>
+          ) : (
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-12 py-5 bg-red-500 text-white font-black rounded-2xl hover:bg-red-600 transition-all active:scale-95 group shadow-xl"
+            >
+              <LogOut className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+              SWITCH ACCOUNT
+            </button>
+          )}
         </motion.div>
       </div>
     );
@@ -649,7 +668,7 @@ export default function AdminDashboard() {
                             className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" 
                             referrerPolicy="no-referrer"
                           />
-                          <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute top-4 right-4 flex flex-col gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                              <button onClick={() => handleEditProduct(p)} className="p-4 bg-white text-black rounded-2xl shadow-2xl hover:bg-orange-500 hover:text-white transition-all active:scale-90 border border-black/5"><Settings className="w-4 h-4" /></button>
                              <button onClick={() => handleDeleteProduct(p.id)} className="p-4 bg-red-50 text-red-500 rounded-2xl shadow-2xl hover:bg-red-500 hover:text-white transition-all active:scale-90 border border-red-100"><Trash2 className="w-4 h-4" /></button>
                           </div>

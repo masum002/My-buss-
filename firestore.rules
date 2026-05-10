@@ -12,15 +12,15 @@ service cloud.firestore {
     
     function isAdmin() { 
       return isVerified() && (
-        request.auth.token.email == 'mahfujar003@gmail.com' || 
-        exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
+        request.auth.token.email.lower() == 'mahfujar003@gmail.com' || 
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower()))
       ); 
     }
 
     function isSuperAdmin() {
       return isVerified() && (
-        request.auth.token.email == 'mahfujar003@gmail.com' || 
-        get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.role == 'super'
+        request.auth.token.email.lower() == 'mahfujar003@gmail.com' || 
+        get(/databases/$(database)/documents/admins/$(request.auth.token.email.lower())).data.role == 'super'
       );
     }
 
