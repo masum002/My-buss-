@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { getDocument } from '../lib/firestore';
 import { Product } from '../types';
 import { useCartStore } from '../lib/store';
-import { ShoppingBag, Zap, ArrowLeft, ShieldCheck, Truck, Clock, Star, Share2, Plus, Minus } from 'lucide-react';
+import { ShoppingBag, Zap, ArrowLeft, ShieldCheck, Truck, Clock, Star, Share2 } from 'lucide-react';
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -17,9 +17,20 @@ export default function ProductDetail() {
   useEffect(() => {
     const fetchProduct = async () => {
       if (!id) return;
-      const data = await getDocument<Product>('products', id);
-      setProduct(data);
-      setLoading(false);
+      try {
+        setLoading(true);
+        const data = await getDocument<Product>('products', id);
+        if (data) {
+          setProduct(data);
+        } else {
+          setProduct(null);
+        }
+      } catch (err) {
+        console.error("Failed to fetch tech asset:", err);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchProduct();
     window.scrollTo(0, 0);
@@ -36,7 +47,7 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <div className="pt-32 min-h-screen bg-[#F4F5F7] text-center px-4">
-        <h2 className="text-3xl font-black uppercase italic italic tracking-tighter mb-4">Discovery Error</h2>
+        <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-4">Discovery Error</h2>
         <p className="text-black/40 mb-8 font-medium">The requested tech asset could not be located in our inventory.</p>
         <button onClick={() => navigate('/')} className="px-10 py-4 bg-black text-white font-black uppercase rounded-xl">Return to Hub</button>
       </div>
@@ -44,13 +55,19 @@ export default function ProductDetail() {
   }
 
   const price = typeof product.price === 'number' ? product.price : Number(String(product.price).replace(/[^0-9.]/g, '')) || 0;
-  const productImages = product.images || ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000&auto=format&fit=crop'];
-  const [quantity, setQuantity] = useState(1);
+  const productImages = (product.images && product.images.length > 0) 
+    ? product.images 
+    : ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000&auto=format&fit=crop'];
 
   const handleBuyNow = () => {
-    const item = { id: product.id, name: product.name, price: price, image: productImages[0], quantity };
+    const item = { id: product.id, name: product.name, price: price, image: productImages[0], quantity: 1 };
     addItem(item);
     navigate('/checkout', { state: { directBuy: item } });
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    alert('Product link copied to clipboard!');
   };
 
   return (
@@ -131,31 +148,11 @@ export default function ProductDetail() {
                </div>
             </div>
             
-            {/* Quantity Selector */}
-            <div className="mb-8 p-1">
-               <p className="text-[10px] font-black uppercase text-black/30 tracking-widest px-1 mb-3">Units Requested</p>
-               <div className="flex items-center gap-6 bg-white border border-black/5 p-4 rounded-3xl w-fit shadow-sm">
-                  <button 
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all text-black/40 border border-black/5 active:scale-90"
-                  >
-                    <Minus className="w-5 h-5" />
-                  </button>
-                  <span className="w-12 text-center font-black text-2xl italic tracking-tighter">{quantity}</span>
-                  <button 
-                    onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all text-black/40 border border-black/5 active:scale-90"
-                  >
-                     <Plus className="w-5 h-5" />
-                  </button>
-               </div>
-            </div>
-
             {/* Actions */}
             <div className="space-y-4 mb-12">
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <button 
-                    onClick={() => addItem({ id: product.id, name: product.name, price: price, image: productImages[0], quantity })}
+                    onClick={() => addItem({ id: product.id, name: product.name, price: price, image: productImages[0], quantity: 1 })}
                     disabled={product.stock <= 0}
                     className="w-full py-6 bg-[#F8F9FA] border border-black/5 text-black text-sm font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-black hover:text-white transition-all active:scale-95 uppercase tracking-widest disabled:opacity-50"
                   >
@@ -168,12 +165,15 @@ export default function ProductDetail() {
                     className="w-full py-6 bg-black text-white text-sm font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-orange-500 transition-all active:scale-95 uppercase tracking-widest shadow-2xl shadow-black/20 disabled:opacity-50"
                   >
                     <Zap className="w-5 h-5 fill-current" />
-                    Direct Protocol (Buy Now)
+                    Buy Now
                   </button>
                </div>
-               <button className="w-full py-4 bg-white border border-black/5 text-black/40 text-[10px] font-black rounded-xl uppercase tracking-widest hover:text-black transition-colors flex items-center justify-center gap-2">
+               <button 
+                 onClick={handleCopyLink}
+                 className="w-full py-4 bg-white border border-black/5 text-black/40 text-[10px] font-black rounded-xl uppercase tracking-widest hover:text-black transition-colors flex items-center justify-center gap-2"
+               >
                  <Share2 className="w-3 h-3" />
-                 Distribute Link
+                 Copy Link
                </button>
             </div>
 
