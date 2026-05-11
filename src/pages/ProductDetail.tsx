@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { getDocument } from '../lib/firestore';
 import { Product } from '../types';
 import { useCartStore } from '../lib/store';
-import { ShoppingBag, Zap, ArrowLeft, ShieldCheck, Truck, Clock, Star, Share2 } from 'lucide-react';
+import { ShoppingBag, Zap, ArrowLeft, ShieldCheck, Truck, Clock, Star, Share2, Plus, Minus } from 'lucide-react';
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -45,9 +45,10 @@ export default function ProductDetail() {
 
   const price = typeof product.price === 'number' ? product.price : Number(String(product.price).replace(/[^0-9.]/g, '')) || 0;
   const productImages = product.images || ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000&auto=format&fit=crop'];
+  const [quantity, setQuantity] = useState(1);
 
   const handleBuyNow = () => {
-    const item = { id: product.id, name: product.name, price: price, image: productImages[0] };
+    const item = { id: product.id, name: product.name, price: price, image: productImages[0], quantity };
     addItem(item);
     navigate('/checkout', { state: { directBuy: item } });
   };
@@ -129,20 +130,42 @@ export default function ProductDetail() {
                   </p>
                </div>
             </div>
+            
+            {/* Quantity Selector */}
+            <div className="mb-8 p-1">
+               <p className="text-[10px] font-black uppercase text-black/30 tracking-widest px-1 mb-3">Units Requested</p>
+               <div className="flex items-center gap-6 bg-white border border-black/5 p-4 rounded-3xl w-fit shadow-sm">
+                  <button 
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all text-black/40 border border-black/5 active:scale-90"
+                  >
+                    <Minus className="w-5 h-5" />
+                  </button>
+                  <span className="w-12 text-center font-black text-2xl italic tracking-tighter">{quantity}</span>
+                  <button 
+                    onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all text-black/40 border border-black/5 active:scale-90"
+                  >
+                     <Plus className="w-5 h-5" />
+                  </button>
+               </div>
+            </div>
 
             {/* Actions */}
             <div className="space-y-4 mb-12">
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <button 
-                    onClick={() => addItem({ id: product.id, name: product.name, price: price, image: productImages[0] })}
-                    className="w-full py-6 bg-[#F8F9FA] border border-black/5 text-black text-sm font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-black hover:text-white transition-all active:scale-95 uppercase tracking-widest"
+                    onClick={() => addItem({ id: product.id, name: product.name, price: price, image: productImages[0], quantity })}
+                    disabled={product.stock <= 0}
+                    className="w-full py-6 bg-[#F8F9FA] border border-black/5 text-black text-sm font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-black hover:text-white transition-all active:scale-95 uppercase tracking-widest disabled:opacity-50"
                   >
                     <ShoppingBag className="w-5 h-5" />
                     Archive to Cart
                   </button>
                   <button 
                     onClick={handleBuyNow}
-                    className="w-full py-6 bg-black text-white text-sm font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-orange-500 transition-all active:scale-95 uppercase tracking-widest shadow-2xl shadow-black/20"
+                    disabled={product.stock <= 0}
+                    className="w-full py-6 bg-black text-white text-sm font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-orange-500 transition-all active:scale-95 uppercase tracking-widest shadow-2xl shadow-black/20 disabled:opacity-50"
                   >
                     <Zap className="w-5 h-5 fill-current" />
                     Direct Protocol (Buy Now)

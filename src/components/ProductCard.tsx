@@ -56,7 +56,7 @@ export default function ProductCard({ product }: { product: Product; key?: any }
           <p className="text-black/30 text-[8px] md:text-[10px] uppercase font-black tracking-widest mb-1">
             {product.category}
           </p>
-          <h3 className="text-black font-black text-sm md:text-xl leading-tight group-hover:text-orange-500 transition-colors uppercase italic line-clamp-2 min-h-[2.5rem] md:min-h-0">
+          <h3 className="text-black font-black text-sm md:text-base leading-tight group-hover:text-orange-500 transition-colors uppercase italic line-clamp-4 min-h-[3.5rem] md:min-h-0">
             {product.name}
           </h3>
         </div>

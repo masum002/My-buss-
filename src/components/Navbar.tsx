@@ -45,8 +45,13 @@ export default function Navbar() {
       <nav className="fixed top-0 left-0 right-0 z-[60] bg-black/80 backdrop-blur-3xl border-b border-white/5 px-4 md:px-8">
         <div className="max-w-7xl mx-auto h-20 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link to="/" className="text-2xl font-black italic tracking-tighter text-white group">
-              FrenZ<span className="text-orange-500 group-hover:text-white transition-colors">way</span>
+            <Link to="/" className="flex items-center gap-3 text-2xl font-black italic tracking-tighter text-white group">
+              <img 
+                src="https://res.cloudinary.com/dwfnjvw6v/image/upload/v1778484022/m6gqpwltctdfks5mrdit.png" 
+                alt="FrenZway Logo" 
+                className="h-10 w-auto object-contain"
+              />
+              <span>FrenZ<span className="text-orange-500 group-hover:text-white transition-colors">way</span></span>
             </Link>
 
             {/* Desktop Quick Links */}

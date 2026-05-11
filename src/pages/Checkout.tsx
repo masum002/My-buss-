@@ -21,15 +21,20 @@ export default function Checkout() {
   
   // If directBuy, only show that item
   const checkoutItems = directBuyItem 
-    ? [{ ...directBuyItem, quantity: 1 }] 
+    ? [{ ...directBuyItem, quantity: directBuyItem.quantity || 1 }] 
     : items;
 
-  const [productStocks, setProductStocks] = useState<Record<string, number>>({});
+  const cleanPrice = (val: any) => {
+    if (typeof val === 'number') return val;
+    const cleaned = parseFloat(String(val).replace(/[^0-9.]/g, ''));
+    return isNaN(cleaned) ? 0 : cleaned;
+  };
 
   const calculateSubtotal = () => {
     return checkoutItems.reduce((acc, item) => {
-      const price = typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0;
-      return acc + (price * item.quantity);
+      const price = cleanPrice(item.price);
+      const qty = parseInt(String(item.quantity)) || 1;
+      return acc + (price * qty);
     }, 0);
   };
 
@@ -71,19 +76,7 @@ export default function Checkout() {
       if (data) setSettings(data);
     };
     
-    const fetchStocks = async () => {
-      const stocks: Record<string, number> = {};
-      for (const item of checkoutItems) {
-        const prod = await getDocument<Product>('products', item.id);
-        if (prod) {
-          stocks[item.id] = prod.stock || 0;
-        }
-      }
-      setProductStocks(stocks);
-    };
-
     fetchSettings();
-    fetchStocks();
   }, [checkoutItems.length]);
 
   const handleApplyCoupon = async () => {
@@ -129,7 +122,7 @@ export default function Checkout() {
       // Only apply discount to the specific product
       const targetItem = checkoutItems.find(item => item.id === appliedCoupon.productId);
       if (targetItem) {
-        discountableAmount = targetItem.price * targetItem.quantity;
+        discountableAmount = cleanPrice(targetItem.price);
       }
     } else {
       // Global discount
@@ -140,8 +133,8 @@ export default function Checkout() {
   };
 
   const discountAmount = calculateDiscount();
-  const deliveryCharge = formData.region === 'Inside Dhaka' ? settings.deliveryInsideDhaka : settings.deliveryOutsideDhaka;
-  const grandTotal = subtotal - discountAmount + deliveryCharge;
+  const deliveryCharge = cleanPrice(formData.region === 'Inside Dhaka' ? settings.deliveryInsideDhaka : settings.deliveryOutsideDhaka);
+  const grandTotal = (subtotal || 0) - (discountAmount || 0) + (deliveryCharge || 0);
 
   if (checkoutItems.length === 0 && step !== 'success') {
     navigate('/');
@@ -189,10 +182,14 @@ export default function Checkout() {
       customerName: formData.name,
       phoneNumber: formData.phone,
       address: formData.address,
-      items: checkoutItems,
-      total: grandTotal,
-      subtotal: subtotal,
-      discountAmount: discountAmount,
+      items: checkoutItems.map(item => ({
+        ...item,
+        price: cleanPrice(item.price),
+        quantity: parseInt(String(item.quantity)) || 1
+      })),
+      total: grandTotal || 0,
+      subtotal: subtotal || 0,
+      discountAmount: discountAmount || 0,
       couponCode: appliedCoupon?.code || null,
       deliveryCharge: deliveryCharge,
       region: formData.region,
@@ -210,8 +207,9 @@ export default function Checkout() {
       
       // 2. Decrease Stock for each item
       for (const item of checkoutItems) {
+        const qty = parseInt(String(item.quantity)) || 1;
         await updateDocument('products', item.id, {
-          stock: increment(-item.quantity)
+          stock: increment(-qty)
         });
       }
 
@@ -262,69 +260,69 @@ export default function Checkout() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="space-y-8"
+              className="space-y-6"
             >
-              <h1 className="text-4xl font-black uppercase tracking-tighter italic leading-none">
-                Delivery <span className="text-orange-500 text-stroke-black">Intelligence</span>
+              <h1 className="text-xl md:text-2xl font-black uppercase tracking-tighter italic leading-none">
+                Delivery <span className="text-orange-500">Information</span>
               </h1>
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div>
-                  <label className="text-[10px] font-black uppercase text-black/30 mb-3 block tracking-widest px-1">Tactical Logistics Target (Full Name)</label>
+                  <label className="text-[10px] font-black uppercase text-black/30 mb-2 block tracking-widest px-1">Full Name</label>
                   <input
                     type="text"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-white border border-black/5 p-6 rounded-[2rem] focus:border-orange-500 outline-none transition-all shadow-sm font-black text-sm"
-                    placeholder="e.g. Mahfujar Rahman"
+                    className="w-full bg-white border border-black/5 p-4 rounded-2xl focus:border-orange-500 outline-none transition-all shadow-sm font-black text-sm"
+                    placeholder="Enter your name"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase text-black/30 mb-3 block tracking-widest px-1">Comms Terminal (Phone Number)</label>
+                  <label className="text-[10px] font-black uppercase text-black/30 mb-2 block tracking-widest px-1">Phone Number</label>
                   <input
                     type="tel"
                     required
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full bg-white border border-black/5 p-6 rounded-[2rem] focus:border-orange-500 outline-none transition-all shadow-sm font-black text-sm"
-                    placeholder="+880 1XXX XXXXXX"
+                    className="w-full bg-white border border-black/5 p-4 rounded-2xl focus:border-orange-500 outline-none transition-all shadow-sm font-black text-sm"
+                    placeholder="01XXX XXXXXX"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase text-black/30 mb-3 block tracking-widest px-1">Geo-Political Zone (Region)</label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <label className="text-[10px] font-black uppercase text-black/30 mb-2 block tracking-widest px-1">Region</label>
+                  <div className="grid grid-cols-2 gap-3">
                     {['Inside Dhaka', 'Outside Dhaka'].map(r => (
                       <button 
                         key={r}
                         onClick={() => setFormData({...formData, region: r as any})}
-                        className={`p-6 rounded-[1.5rem] border-2 font-black transition-all flex items-center justify-center gap-3 text-[10px] uppercase tracking-widest ${
-                          formData.region === r ? 'border-orange-500 bg-orange-500/5 text-orange-600 shadow-lg' : 'border-black/5 bg-white text-black/40'
+                        className={`p-4 rounded-xl border font-black transition-all flex items-center justify-center gap-2 text-[9px] uppercase tracking-widest ${
+                          formData.region === r ? 'border-orange-500 bg-orange-500/5 text-orange-600 shadow-sm' : 'border-black/5 bg-white text-black/40'
                         }`}
                       >
-                         <MapPin className="w-4 h-4" />
+                         <MapPin className="w-3 h-3" />
                          {r}
                       </button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase text-black/30 mb-3 block tracking-widest px-1">Final Drop-off Coordinates (Address)</label>
+                  <label className="text-[10px] font-black uppercase text-black/30 mb-2 block tracking-widest px-1">Full Address</label>
                   <textarea
                     required
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full bg-white border border-black/5 p-6 rounded-[2.5rem] focus:border-orange-500 outline-none transition-all shadow-sm font-black text-sm min-h-[140px] resize-none"
-                    placeholder="Full Area, Road, House details..."
+                    className="w-full bg-white border border-black/5 p-4 rounded-2xl focus:border-orange-500 outline-none transition-all shadow-sm font-black text-sm min-h-[100px] resize-none"
+                    placeholder="Area, Road, House details..."
                   />
                 </div>
               </div>
               <button
                 disabled={!formData.name || !formData.phone || !formData.address}
                 onClick={handleNext}
-                className="w-full py-8 bg-black text-white font-black text-xs uppercase tracking-widest rounded-[2rem] disabled:opacity-50 flex items-center justify-center gap-3 shadow-xl hover:bg-orange-500 hover:-translate-y-1 transition-all active:translate-y-0"
+                className="w-full py-6 bg-black text-white font-black text-xs uppercase tracking-widest rounded-2xl disabled:opacity-50 flex items-center justify-center gap-3 shadow-xl hover:bg-orange-500 transition-all font-sans"
               >
-                Proceed to Secure Payment
-                <ChevronRight className="w-5 h-5" />
+                Payment Options
+                <ChevronRight className="w-4 h-4" />
               </button>
             </motion.div>
           )}
@@ -338,26 +336,26 @@ export default function Checkout() {
               className="space-y-8"
             >
               {/* Secure Gateway Section */}
-              <h1 className="text-4xl font-black uppercase tracking-tighter italic">Secure <span className="text-orange-500">Gateway</span></h1>
+              <h1 className="text-2xl font-black uppercase tracking-tighter italic">Secure <span className="text-orange-500">Gateway</span></h1>
               
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => setFormData({ ...formData, paymentMethod: 'COD' })}
-                  className={`p-8 rounded-[2.5rem] border-2 transition-all flex flex-col items-center gap-4 ${
-                    formData.paymentMethod === 'COD' ? 'border-orange-500 bg-orange-500/5 shadow-xl' : 'border-black/5 bg-white grayscale opacity-60'
+                  className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center gap-3 ${
+                    formData.paymentMethod === 'COD' ? 'border-orange-500 bg-orange-500/5 shadow-lg' : 'border-black/5 bg-white grayscale opacity-60'
                   }`}
                 >
-                  <Banknote className="w-10 h-10 text-orange-500" />
-                  <span className="font-black uppercase text-[10px] tracking-widest">Cash On Delivery</span>
+                  <Banknote className="w-8 h-8 text-orange-500" />
+                  <span className="font-black uppercase text-[9px] tracking-widest">Cash On Delivery</span>
                 </button>
                 <button
                   onClick={() => setFormData({ ...formData, paymentMethod: 'Manual' })}
-                  className={`p-8 rounded-[2.5rem] border-2 transition-all flex flex-col items-center gap-4 ${
-                    formData.paymentMethod === 'Manual' ? 'border-orange-500 bg-orange-500/5 shadow-xl' : 'border-black/5 bg-white grayscale opacity-60'
+                  className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center gap-3 ${
+                    formData.paymentMethod === 'Manual' ? 'border-orange-500 bg-orange-500/5 shadow-lg' : 'border-black/5 bg-white grayscale opacity-60'
                   }`}
                 >
-                  <Smartphone className="w-10 h-10 text-orange-500" />
-                  <span className="font-black uppercase text-[10px] tracking-widest">Direct Transfer</span>
+                  <Smartphone className="w-8 h-8 text-orange-500" />
+                  <span className="font-black uppercase text-[9px] tracking-widest">Direct Transfer</span>
                 </button>
               </div>
 
@@ -376,12 +374,12 @@ export default function Checkout() {
                       </button>
                     ))}
                   </div>
-                  <div className="p-8 bg-[#F8F9FA] rounded-[2rem] text-center border-2 border-dashed border-black/5">
+                  <div className="p-6 bg-[#F8F9FA] rounded-[2rem] text-center border-2 border-dashed border-black/5">
                     <p className="text-[10px] text-black/30 font-black uppercase tracking-widest mb-2">Protocol: Send Money To</p>
-                    <p className="text-2xl font-black text-black italic">
+                    <p className="text-xl font-black text-black italic">
                       {formData.paymentGateway === 'bKash' ? settings.bkashNumber : settings.nagadNumber}
                     </p>
-                    <p className="text-[9px] text-orange-500 opacity-70 uppercase tracking-widest font-black mt-3">
+                    <p className="text-[8px] text-orange-500 opacity-70 uppercase tracking-widest font-black mt-3">
                       Verified {formData.paymentGateway === 'bKash' ? settings.bkashType : settings.nagadType} Terminal
                     </p>
                   </div>
@@ -424,32 +422,6 @@ export default function Checkout() {
               )}
 
                 <div className="bg-white p-10 rounded-[3rem] border border-black/5 shadow-2xl">
-                {/* Visual Order Inventory Check */}
-                <div className="mb-8 space-y-3">
-                   <p className="text-[10px] font-black uppercase text-black/30 tracking-widest px-1">Inventory Verification</p>
-                   {checkoutItems.map(item => (
-                     <div key={item.id} className="flex justify-between items-center bg-[#F8F9FA] p-4 rounded-2xl border border-black/5">
-                        <div className="flex items-center gap-3">
-                           <div className="w-10 h-10 bg-white rounded-lg border border-black/5 flex items-center justify-center p-1 overflow-hidden">
-                              <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
-                           </div>
-                           <div>
-                              <p className="text-[10px] font-black uppercase tracking-tight truncate max-w-[120px]">{item.name}</p>
-                              <p className="text-[9px] font-bold text-orange-500 uppercase">Qty: {item.quantity}</p>
-                           </div>
-                        </div>
-                        <div className="text-right">
-                           <p className={`text-[8px] font-black uppercase tracking-widest ${
-                             (productStocks[item.id] || 0) <= 0 ? 'text-red-500' : 'text-green-500'
-                           }`}>
-                             {(productStocks[item.id] || 0) <= 0 ? 'Out of Stock' : `Available: ${productStocks[item.id]}`}
-                           </p>
-                           <p className="text-xs font-black italic">৳{(item.price * item.quantity).toLocaleString()}</p>
-                        </div>
-                     </div>
-                   ))}
-                </div>
-
                 {/* Coupon Section */}
                 <div className="mb-8 p-6 bg-[#F8F9FA] rounded-[2rem] border border-black/5">
                    <p className="text-[10px] font-black uppercase text-black/30 tracking-widest mb-4 px-1">Discount Protocol</p>
@@ -492,30 +464,30 @@ export default function Checkout() {
 
                 <div className="space-y-4 mb-8 border-b border-black/5 pb-8">
                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-black/30">
-                      <span>{directBuyItem ? 'Direct Order Total' : `Cart Subtotal (${checkoutItems.reduce((acc, item) => acc + item.quantity, 0)} Items)`}</span>
-                      <span className="text-black">৳{subtotal.toLocaleString()}</span>
+                      <span>{directBuyItem ? 'Direct Order Total' : `Cart Subtotal (${checkoutItems.reduce((acc, item) => acc + (item.quantity || 0), 0)} Items)`}</span>
+                      <span className="text-black">৳{(subtotal || 0).toLocaleString()}</span>
                    </div>
                    {discountAmount > 0 && (
                      <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-green-600">
                         <span>Incentive Discount</span>
-                        <span>-৳{discountAmount.toLocaleString()}</span>
+                        <span>-৳{(discountAmount || 0).toLocaleString()}</span>
                      </div>
                    )}
                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-black/30">
                       <span>Shiftment Protocol ({formData.region})</span>
-                      <span className="text-black">৳{deliveryCharge}</span>
+                      <span className="text-black">৳{cleanPrice(deliveryCharge)}</span>
                    </div>
                 </div>
                 <div className="flex justify-between items-center mb-8">
-                   <span className="font-black uppercase text-[10px] tracking-widest text-black/30 italic">Total Authorized Valuation</span>
-                   <span className="text-4xl font-black text-orange-500 italic">৳{grandTotal.toLocaleString()}</span>
+                   <span className="font-black uppercase text-[10px] tracking-widest text-black/30 italic">Total Valuation</span>
+                   <span className="text-3xl font-black text-orange-500 italic">৳{(grandTotal || 0).toLocaleString()}</span>
                 </div>
                 <button
                   disabled={loading || (formData.paymentMethod === 'Manual' && !formData.transactionId)}
                   onClick={handleSubmit}
-                  className="w-full py-8 bg-black text-white font-black text-xs uppercase tracking-widest rounded-[2rem] disabled:opacity-50 hover:bg-orange-500 hover:-translate-y-1 transition-all active:translate-y-0 shadow-xl"
+                  className="w-full py-6 bg-black text-white font-black text-xs uppercase tracking-widest rounded-2xl disabled:opacity-50 hover:bg-orange-500 transition-all shadow-xl"
                 >
-                  {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto text-white" /> : 'Authorize Transaction'}
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto text-white" /> : 'Confirm Order'}
                 </button>
               </div>
             </motion.div>

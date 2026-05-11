@@ -110,78 +110,64 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative bg-white border-t border-black/5 pt-8 pb-12 px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-10">
-          {/* Brand Info */}
-          <div className="lg:col-span-1">
-            <h3 className="text-3xl font-black italic tracking-tighter mb-6">
-              FrenZ<span className="text-orange-500 text-stroke-black">way</span>
-            </h3>
-            <p className="text-black/40 text-sm font-medium leading-relaxed mb-8">বাংলাদেশের সেরা গেজেট ও লাইফস্টাইল শপ। আমরা আপনার জীবনকে সহজ ও টেক-স্মার্ট করতে কাজ করি।</p>
-            <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 bg-[#F8F9FA] rounded-xl flex items-center justify-center text-black/30 hover:bg-black hover:text-white transition-all shadow-sm">
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-[#F8F9FA] rounded-xl flex items-center justify-center text-black/30 hover:bg-black hover:text-white transition-all shadow-sm">
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-[#F8F9FA] rounded-xl flex items-center justify-center text-black/30 hover:bg-black hover:text-white transition-all shadow-sm">
-                <Twitter className="w-5 h-5" />
-              </a>
-            </div>
-          </div>
+    <footer className="relative bg-black/95 backdrop-blur-3xl border-t border-white/5 pt-12 pb-10 px-6 text-white overflow-hidden">
+      <div className="max-w-7xl mx-auto flex flex-col items-center">
+        
+        {/* Main Trust & Brand Centerpiece */}
+        <div className="bg-white/5 p-8 rounded-[3rem] border border-white/5 shadow-2xl flex flex-col md:flex-row items-center gap-8 mb-12 w-full max-w-4xl group hover:border-orange-500/30 transition-all duration-500">
+           <div className="flex flex-col items-center md:items-start text-center md:text-left border-b md:border-b-0 md:border-r border-white/10 pb-6 md:pb-0 md:pr-8">
+              <div className="flex items-center gap-3 mb-4 group-hover:scale-105 transition-transform">
+                <img 
+                  src="https://res.cloudinary.com/dwfnjvw6v/image/upload/v1778484022/m6gqpwltctdfks5mrdit.png" 
+                  alt="FrenZway Logo" 
+                  className="h-10 w-auto object-contain"
+                />
+                <span className="text-2xl font-black italic tracking-tighter text-white">FrenZ<span className="text-orange-500">way</span></span>
+              </div>
+              <h3 className="text-lg font-black italic uppercase tracking-tighter text-white/90">100% Genuine Authority</h3>
+           </div>
+           
+           <div className="flex-1 text-center md:text-left">
+              <p className="text-[10px] font-black uppercase text-white/30 tracking-widest mb-3">Professional Sourcing</p>
+              <p className="text-sm font-medium text-white/50 italic leading-tight">Certified Integrity In Every Electronic Gadget. We provide the best gadgets in BD.</p>
+           </div>
 
-          {/* Modern Navigation */}
-          <div className="lg:col-span-2">
-            <p className="text-[10px] font-black uppercase text-black/20 tracking-[0.3em] mb-10">Smart Navigation Control</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {footerLinks.map(link => (
-                <button 
-                  key={link.label}
-                  onClick={() => setActiveModal(link.type)}
-                  className="flex items-center gap-4 p-5 bg-[#F8F9FA] border border-black/5 rounded-3xl hover:bg-black hover:text-white transition-all group shadow-sm text-left"
-                >
-                  <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center border border-black/5 text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all shadow-inner">
-                    {link.icon && <link.icon className="w-4 h-4" />}
-                  </div>
-                  <div>
-                    <span className="text-xs font-black uppercase tracking-widest">{link.label}</span>
-                    <p className="text-[8px] font-bold text-black/20 group-hover:text-white/40 uppercase tracking-tighter mt-0.5 italic">Access Protocol Ready</p>
-                  </div>
-                </button>
-              ))}
-              <a 
-                href="/track"
-                className="flex items-center gap-4 p-5 bg-[#F8F9FA] border border-black/5 rounded-3xl hover:bg-orange-500 hover:text-white transition-all group shadow-sm text-left"
-              >
-                <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center border border-black/5 text-orange-500 group-hover:bg-white group-hover:text-orange-500 transition-all shadow-inner">
-                  <HelpCircle className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-xs font-black uppercase tracking-widest">Track Order</span>
-                  <p className="text-[8px] font-bold text-black/20 group-hover:text-white/40 uppercase tracking-tighter mt-0.5 italic">Real-time Logistics</p>
-                </div>
+           <div className="flex gap-3">
+              <a href="https://www.facebook.com/profile.php?id=61589507970060" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-white/30 hover:bg-orange-500 hover:text-white transition-all shadow-lg border border-white/10">
+                <Facebook className="w-6 h-6" />
               </a>
-            </div>
-          </div>
-
-          {/* Trust Badge */}
-          <div className="lg:col-span-1 bg-[#F8F9FA] p-8 rounded-[2.5rem] border border-black/5 shadow-inner flex flex-col justify-center items-center text-center">
-             <Shield className="w-10 h-10 text-orange-500 mb-4 opacity-20" />
-             <p className="text-[10px] font-black uppercase text-black/20 tracking-widest mb-1">Authentic Seal</p>
-             <p className="text-lg font-black italic uppercase tracking-tighter">100% Genuine</p>
-             <p className="text-[10px] text-black/40 mt-2">Certified Product Sourcing</p>
-          </div>
+              <a href="#" className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-white/30 hover:bg-orange-500 hover:text-white transition-all shadow-lg border border-white/10">
+                <Instagram className="w-6 h-6" />
+              </a>
+           </div>
         </div>
 
-        <div className="pt-12 border-t border-black/5 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-[10px] font-black text-black/20 uppercase tracking-widest italic">
-            © 2024 FrenZway Global. Crafting experiences in BD.
+        {/* Streamlined Multi-link Row */}
+        <div className="flex flex-wrap justify-center items-center gap-x-10 gap-y-4 mb-10 w-full border-b border-white/5 pb-10">
+          {footerLinks.map(link => (
+            <button 
+              key={link.label}
+              onClick={() => setActiveModal(link.type)}
+              className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 hover:text-orange-500 transition-all active:scale-95"
+            >
+              {link.label}
+            </button>
+          ))}
+          <a 
+            href="/track" 
+            className="text-[11px] font-black uppercase tracking-[0.25em] text-orange-500 hover:text-white transition-all active:scale-95 px-4 py-2 bg-orange-500/5 rounded-full border border-orange-500/20"
+          >
+            Track Logistics
+          </a>
+        </div>
+
+        {/* Small Legal Footer */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
+          <p className="text-[9px] font-black text-white/20 uppercase tracking-widest italic text-center md:text-left">
+            © 2026 FrenZway Global Command. Engineering Excellence across Bangladesh.
           </p>
-          <div className="flex gap-8">
-            <span className="text-[9px] font-black text-black/10 uppercase tracking-[0.4em]">Designed for Excellence</span>
-            <span className="text-[9px] font-black text-black/10 uppercase tracking-[0.4em]">Powered by Integrity</span>
+          <div className="flex gap-4 opacity-30 grayscale hover:grayscale-0 transition-all">
+             <span className="text-[8px] font-black text-white uppercase tracking-[0.5em] border border-white/20 px-3 py-1 rounded-sm">Powered by FrenZway</span>
           </div>
         </div>
       </div>
