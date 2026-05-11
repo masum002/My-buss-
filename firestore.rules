@@ -33,7 +33,7 @@ service cloud.firestore {
     // Collection: Products
     match /products/{productId} {
       allow read: if true;
-      allow update: if (isAdmin() || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock']));
+      allow update: if (isAdmin() || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock', 'updatedAt']));
       allow create, delete: if isAdmin();
     }
 
