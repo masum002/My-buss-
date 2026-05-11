@@ -35,39 +35,41 @@ export default function Cart() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="flex items-center gap-4 bg-white border border-black/5 p-6 rounded-[2rem] group shadow-sm hover:shadow-xl transition-all duration-500"
+              className="flex flex-col sm:flex-row items-center gap-4 bg-white border border-black/5 p-6 rounded-[2rem] group shadow-sm hover:shadow-xl transition-all duration-500"
             >
-              <div className="w-24 h-24 bg-[#F8F9FA] rounded-2xl overflow-hidden p-2 flex items-center justify-center">
+              <div className="w-24 h-24 bg-[#F8F9FA] rounded-2xl overflow-hidden p-2 flex items-center justify-center flex-shrink-0">
                 <img src={item.image} alt={item.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
               </div>
               
-              <div className="flex-1 min-w-0 px-2">
+              <div className="flex-1 min-w-0 px-2 text-center sm:text-left">
                 <h3 className="font-black text-lg truncate uppercase italic tracking-tighter">{item.name}</h3>
-                <p className="text-orange-500 font-black italic">৳{Number(item.price).toLocaleString()}</p>
+                <p className="text-orange-500 font-black italic text-xl">৳{Number(item.price).toLocaleString()}</p>
               </div>
 
-              <div className="flex items-center gap-3 bg-[#F8F9FA] rounded-xl p-2 border border-black/5">
+              <div className="flex items-center gap-4 sm:gap-3">
+                <div className="flex items-center gap-3 bg-[#F8F9FA] rounded-xl p-2 border border-black/5">
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    className="p-1 hover:text-orange-500 transition-colors text-black/40"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="w-6 text-center font-black text-sm">{item.quantity}</span>
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    className="p-1 hover:text-orange-500 transition-colors text-black/40"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+
                 <button
-                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                  className="p-1 hover:text-orange-500 transition-colors text-black/40"
+                  onClick={() => removeItem(item.id)}
+                  className="p-4 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
                 >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="w-6 text-center font-black text-sm">{item.quantity}</span>
-                <button
-                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  className="p-1 hover:text-orange-500 transition-colors text-black/40"
-                >
-                  <Plus className="w-4 h-4" />
+                  <Trash2 className="w-5 h-5" />
                 </button>
               </div>
-
-              <button
-                onClick={() => removeItem(item.id)}
-                className="p-4 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
             </motion.div>
           ))}
         </div>

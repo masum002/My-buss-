@@ -24,9 +24,10 @@ export default function ProductCard({ product }: { product: Product; key?: any }
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
       viewport={{ once: true }}
+      transition={{ duration: 0.3 }}
       className="group relative bg-white rounded-[2.5rem] overflow-hidden border border-black/5 hover:border-orange-500/50 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)]"
     >
       <Link to={`/product/${product.id}`} className="block aspect-square overflow-hidden bg-[#F8F9FA] relative">

@@ -71,6 +71,10 @@ export default function Checkout() {
   });
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     const fetchSettings = async () => {
       const data = await getDocument<any>('settings', 'global');
       if (data) setSettings(data);

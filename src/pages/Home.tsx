@@ -131,7 +131,7 @@ export default function Home() {
                            <TrendingUp className="w-8 h-8" />
                         </div>
                         <div>
-                           <h2 className="text-5xl font-black uppercase tracking-tighter leading-none italic">Best <br/><span className="text-orange-500">Sellers</span></h2>
+                           <h2 className="text-5xl font-black uppercase tracking-tighter leading-none italic">Top <br/><span className="text-orange-500">Sales</span></h2>
                            <p className="text-black/40 text-xs font-black uppercase tracking-widest mt-2 px-1">Trend Analysis: High Performance</p>
                         </div>
                      </div>

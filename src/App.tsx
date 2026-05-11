@@ -17,7 +17,7 @@ function AppContent() {
     <div className="bg-[#F4F5F7] min-h-screen">
       <Navbar />
       <main>
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           <Routes location={location}>
             <Route path="/" element={<Home />} />
             <Route path="/cart" element={<Cart />} />
