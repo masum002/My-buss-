@@ -71,6 +71,22 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "slug"]
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Global store configuration",
+      "type": "object",
+      "properties": {
+        "deliveryInsideDhaka": { "type": "number" },
+        "deliveryOutsideDhaka": { "type": "number" },
+        "bkashNumber": { "type": "string" },
+        "bkashType": { "type": "string" },
+        "nagadNumber": { "type": "string" },
+        "nagadType": { "type": "string" },
+        "hotline": { "type": "string" },
+        "emailSupport": { "type": "string" },
+        "registeredOffice": { "type": "string" }
+      }
     }
   },
   "firestore": {

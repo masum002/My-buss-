@@ -11,6 +11,9 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [regularLimit, setRegularLimit] = useState(10);
+  const [hotLimit, setHotLimit] = useState(10);
+  const [topLimit, setTopLimit] = useState(10);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -86,8 +89,20 @@ export default function Home() {
           <div className="space-y-32">
              {/* General Listing */}
              {regularProducts.length > 0 ? (
-               <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-10">
-                 {regularProducts.map(p => <ProductCard key={p.id} product={p as Product} />)}
+               <div className="space-y-12">
+                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-10">
+                   {regularProducts.slice(0, regularLimit).map(p => <ProductCard key={p.id} product={p as Product} />)}
+                 </div>
+                 {regularProducts.length > regularLimit && (
+                   <div className="flex justify-center mt-12">
+                     <button 
+                       onClick={() => setRegularLimit(prev => prev + 10)}
+                       className="px-10 py-5 bg-white border border-black/5 rounded-[2rem] text-sm font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all shadow-sm active:scale-95"
+                     >
+                       More Products
+                     </button>
+                   </div>
+                 )}
                </div>
              ) : selectedCategory !== 'all' && (
                <div className="text-center py-20 bg-white border border-dashed border-black/10 rounded-[3rem]">
@@ -115,17 +130,27 @@ export default function Home() {
                          <p className="text-2xl font-black text-black uppercase italic tracking-tighter">Limited Quantities</p>
                       </div>
                    </div>
-                   <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10 relative z-10">
-                      {hotDeals.map(p => <ProductCard key={p.id} product={p as Product} />)}
+                   <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-10 relative z-10">
+                      {hotDeals.slice(0, hotLimit).map(p => <ProductCard key={p.id} product={p as Product} />)}
                    </div>
+                   {hotDeals.length > hotLimit && (
+                     <div className="flex justify-center mt-12 relative z-10">
+                       <button 
+                         onClick={() => setHotLimit(prev => prev + 10)}
+                         className="px-10 py-5 bg-[#F8F9FA] border border-black/5 rounded-[2rem] text-sm font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all shadow-sm active:scale-95"
+                       >
+                         More Offers
+                       </button>
+                     </div>
+                   )}
                 </div>
              )}
 
-           {/* Top Sales Highlight */}
+             {/* Top Sales Highlight */}
              {topSales.length > 0 && (
-               <div className="bg-black text-white rounded-[4rem] p-12 shadow-2xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-full h-full bg-orange-500/10 pointer-events-none" />
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 px-4">
+               <div className="bg-white rounded-[4rem] p-12 border border-black/5 shadow-lg overflow-hidden relative">
+                  <div className="absolute -top-24 -left-24 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl" />
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 px-4 relative z-10">
                      <div className="flex items-center gap-6">
                         <div className="w-16 h-16 bg-black text-white rounded-[2.5rem] flex items-center justify-center shadow-2xl rotate-3">
                            <TrendingUp className="w-8 h-8" />
@@ -140,9 +165,19 @@ export default function Home() {
                         <p className="text-2xl font-black text-black uppercase italic tracking-tighter">Stock Synchronized</p>
                      </div>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10">
-                     {topSales.map(p => <ProductCard key={p.id} product={p as Product} />)}
+                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-10 relative z-10">
+                     {topSales.slice(0, topLimit).map(p => <ProductCard key={p.id} product={p as Product} />)}
                   </div>
+                  {topSales.length > topLimit && (
+                    <div className="flex justify-center mt-12 relative z-10">
+                      <button 
+                        onClick={() => setTopLimit(prev => prev + 10)}
+                        className="px-10 py-5 bg-[#F8F9FA] border border-black/5 rounded-[2rem] text-sm font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all shadow-sm active:scale-95 text-black"
+                      >
+                        More Sales
+                      </button>
+                    </div>
+                  )}
                </div>
              )}
           </div>

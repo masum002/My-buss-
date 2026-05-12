@@ -9,7 +9,7 @@ import { orderBy, Timestamp } from 'firebase/firestore';
 import { 
   Search, ChevronDown, Package, Clock, Filter, Eye, Lock, LogOut, 
   Plus, Settings, ListOrdered, Box, Trash2, Upload, Save, X, Truck, 
-  Smartphone, MapPin, Banknote, Image as ImageIcon, Ticket, ShieldCheck, UserPlus, Users
+  Smartphone, MapPin, Banknote, Image as ImageIcon, Ticket, ShieldCheck, UserPlus, Users, Mail
 } from 'lucide-react';
 
 import { Coupon, Admin } from '../types';
@@ -69,7 +69,10 @@ export default function AdminDashboard() {
     bkashNumber: '01700-000000',
     bkashType: 'Personal',
     nagadNumber: '01800-000000',
-    nagadType: 'Personal'
+    nagadType: 'Personal',
+    hotline: '+880 1700-000000',
+    emailSupport: 'support@frenzway.com',
+    registeredOffice: 'Dhanmondi, Dhaka, Bangladesh'
   });
 
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -972,6 +975,41 @@ export default function AdminDashboard() {
                                   </button>
                                 ))}
                              </div>
+                          </div>
+                       </div>
+                    </div>
+
+                    <div className="space-y-8 border-t border-black/5 pt-12">
+                       <div className="flex items-center gap-4 text-orange-500">
+                          <Mail className="w-8 h-8" />
+                          <h2 className="text-3xl font-black uppercase tracking-tighter italic">Contact Synthesis</h2>
+                       </div>
+                       <div className="grid grid-cols-1 gap-8">
+                          <div className="space-y-4">
+                             <label className="text-[10px] font-black uppercase text-black/30 tracking-[0.2em] block mb-2 px-1">Hotline Number</label>
+                             <input 
+                                type="text" 
+                                value={settings.hotline}
+                                onChange={e => setSettings({...settings, hotline: e.target.value})}
+                                className="w-full bg-[#F8F9FA] border border-black/5 p-6 rounded-[2rem] focus:border-orange-500 outline-none font-black text-sm shadow-inner" 
+                             />
+                          </div>
+                          <div className="space-y-4">
+                             <label className="text-[10px] font-black uppercase text-black/30 tracking-[0.2em] block mb-2 px-1">Email Support</label>
+                             <input 
+                                type="text" 
+                                value={settings.emailSupport}
+                                onChange={e => setSettings({...settings, emailSupport: e.target.value})}
+                                className="w-full bg-[#F8F9FA] border border-black/5 p-6 rounded-[2rem] focus:border-orange-500 outline-none font-black text-sm shadow-inner" 
+                             />
+                          </div>
+                          <div className="space-y-4">
+                             <label className="text-[10px] font-black uppercase text-black/30 tracking-[0.2em] block mb-2 px-1">Registered Office Address</label>
+                             <textarea 
+                                value={settings.registeredOffice}
+                                onChange={e => setSettings({...settings, registeredOffice: e.target.value})}
+                                className="w-full bg-[#F8F9FA] border border-black/5 p-6 rounded-[2rem] focus:border-orange-500 outline-none font-black text-sm shadow-inner min-h-[100px]" 
+                             />
                           </div>
                        </div>
                     </div>
