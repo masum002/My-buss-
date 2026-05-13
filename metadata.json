@@ -2,5 +2,5 @@
   "name": "FrenZway",
   "description": "FrenZway is Bangladesh's premium tech and gadget destination. Shop high-end gear with direct checkout, real-time tracking, and zero account requirement.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
