@@ -26,9 +26,7 @@ const app = getApps().length === 0 ? initializeApp(finalConfig) : getApps()[0];
 
 // Initialize Firestore with custom settings if needed
 // We use initializeFirestore instead of getFirestore to pass settings
-export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-}, finalConfig.firestoreDatabaseId || '(default)');
+export const db = initializeFirestore(app, {}, finalConfig.firestoreDatabaseId || '(default)');
 
 export const auth = getAuth(app);
 export const storage = getStorage(app);
