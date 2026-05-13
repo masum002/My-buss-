@@ -46,7 +46,7 @@ export default function Home() {
 
   const hotDeals = filteredProducts.filter(p => p.isHot);
   const topSales = filteredProducts.filter(p => p.isTopSale);
-  const regularProducts = filteredProducts.filter(p => !p.isHot && !p.isTopSale);
+  const allProducts = filteredProducts;
 
   return (
     <div className="pt-24 min-h-screen bg-[#F4F5F7] text-[#1A1A1A]">
@@ -88,12 +88,12 @@ export default function Home() {
         ) : (
           <div className="space-y-32">
              {/* General Listing */}
-             {regularProducts.length > 0 ? (
+             {allProducts.length > 0 ? (
                <div className="space-y-12">
                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-10">
-                   {regularProducts.slice(0, regularLimit).map(p => <ProductCard key={p.id} product={p as Product} />)}
+                   {allProducts.slice(0, regularLimit).map(p => <ProductCard key={p.id} product={p as Product} />)}
                  </div>
-                 {regularProducts.length > regularLimit && (
+                 {allProducts.length > regularLimit && (
                    <div className="flex justify-center mt-12">
                      <button 
                        onClick={() => setRegularLimit(prev => prev + 10)}
