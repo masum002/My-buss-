@@ -29,27 +29,27 @@ export default function Footer() {
       title: 'Contact Us',
       content: (
         <div className="space-y-6">
-          <p className="text-black font-medium">আমাদের সাথে যোগাযোগ করার জন্য নিচের তথ্যগুলো ব্যবহার করুন। আমরা ২৪ ঘণ্টার মধ্যে উত্তর দেওয়ার চেষ্টা করি।</p>
+          <p className="text-black font-semibold text-base leading-relaxed">আমাদের সাথে যোগাযোগ করার জন্য নিচের তথ্যগুলো ব্যবহার করুন। আমরা ২৪ ঘণ্টার মধ্যে উত্তর দেওয়ার চেষ্টা করি।</p>
           <div className="space-y-4">
-            <div className="flex items-center gap-4 p-4 bg-[#F8F9FA] rounded-2xl border border-black/10">
-              <Phone className="w-5 h-5 text-orange-500" />
+            <div className="flex items-center gap-4 p-5 bg-white rounded-2xl border-2 border-black/5 shadow-sm">
+              <Phone className="w-6 h-6 text-orange-500" />
               <div>
-                <p className="text-[10px] font-black uppercase text-black/50">Hotline</p>
-                <p className="font-black text-black">{settings?.hotline || '+880 1700-000000'}</p>
+                <p className="text-[10px] font-black uppercase text-black/40 tracking-widest">Hotline</p>
+                <p className="font-black text-lg text-black">{settings?.hotline || '+880 1700-000000'}</p>
               </div>
             </div>
-            <div className="flex items-center gap-4 p-4 bg-[#F8F9FA] rounded-2xl border border-black/10">
-              <Mail className="w-5 h-5 text-orange-500" />
+            <div className="flex items-center gap-4 p-5 bg-white rounded-2xl border-2 border-black/5 shadow-sm">
+              <Mail className="w-6 h-6 text-orange-500" />
               <div>
-                <p className="text-[10px] font-black uppercase text-black/50">Email Support</p>
-                <p className="font-black text-black">{settings?.emailSupport || 'support@frenzway.com'}</p>
+                <p className="text-[10px] font-black uppercase text-black/40 tracking-widest">Email Support</p>
+                <p className="font-black text-lg text-black">{settings?.emailSupport || 'support@frenzway.com'}</p>
               </div>
             </div>
-            <div className="flex items-center gap-4 p-4 bg-[#F8F9FA] rounded-2xl border border-black/10">
-              <MapPin className="w-5 h-5 text-orange-500" />
+            <div className="flex items-center gap-4 p-5 bg-white rounded-2xl border-2 border-black/5 shadow-sm">
+              <MapPin className="w-6 h-6 text-orange-500" />
               <div>
-                <p className="text-[10px] font-black uppercase text-black/50">Registered Office</p>
-                <p className="font-black text-black">{settings?.registeredOffice || 'Dhanmondi, Dhaka, Bangladesh'}</p>
+                <p className="text-[10px] font-black uppercase text-black/40 tracking-widest">Registered Office</p>
+                <p className="font-black text-base text-black leading-relaxed">{settings?.registeredOffice || 'Dhanmondi, Dhaka, Bangladesh'}</p>
               </div>
             </div>
           </div>
@@ -77,26 +77,26 @@ export default function Footer() {
       content: (
         <div className="space-y-6">
           <div className="space-y-4">
-            <details className="group bg-[#F8F9FA] rounded-2xl border border-black/10 p-5 cursor-pointer">
-              <summary className="font-black text-sm list-none flex justify-between items-center text-black">
+            <details className="group bg-white rounded-2xl border-2 border-black/5 p-6 cursor-pointer shadow-sm">
+              <summary className="font-black text-base list-none flex justify-between items-center text-black">
                 কিভাবে অর্ডার করব?
                 <span className="text-orange-500 group-open:rotate-180 transition-transform">↓</span>
               </summary>
-              <p className="text-[13px] text-black font-medium mt-3 leading-relaxed">সহজেই শপ সেকশন থেকে আপনার পছন্দের পণ্যটি কার্টে যোগ করুন এবং চেকআউট পেজে গিয়ে আপনার নাম, ফোন নম্বর এবং ঠিকানা দিয়ে কনফার্ম করুন। কোনো অ্যাকাউন্ট খোলার প্রয়োজন নেই।</p>
+              <p className="text-sm text-black/70 font-semibold mt-4 leading-relaxed">সহজেই শপ সেকশন থেকে আপনার পছন্দের পণ্যটি কার্টে যোগ করুন এবং চেকআউট পেজে গিয়ে আপনার নাম, ফোন নম্বর এবং ঠিকানা দিয়ে কনফার্ম করুন। কোনো অ্যাকাউন্ট খোলার প্রয়োজন নেই।</p>
             </details>
-            <details className="group bg-[#F8F9FA] rounded-2xl border border-black/10 p-5 cursor-pointer">
-              <summary className="font-black text-sm list-none flex justify-between items-center text-black">
+            <details className="group bg-white rounded-2xl border-2 border-black/5 p-6 cursor-pointer shadow-sm">
+              <summary className="font-black text-base list-none flex justify-between items-center text-black">
                 ডেলিভারি চার্জ কত?
                 <span className="text-orange-500 group-open:rotate-180 transition-transform">↓</span>
               </summary>
-              <p className="text-[13px] text-black font-medium mt-3 leading-relaxed">ঢাকার ভিতরে ডেলিভারি চার্জ ৬০ টাকা এবং ঢাকার বাইরে ১২০ টাকা। অর্ডার করার ২-৫ দিনের মধ্যে ডেলিভারি সম্পন্ন করা হয়।</p>
+              <p className="text-sm text-black/70 font-semibold mt-4 leading-relaxed">ঢাকার ভিতরে ডেলিভারি চার্জ ৬০ টাকা এবং ঢাকার বাইরে ১২০ টাকা। অর্ডার করার ২-৫ দিনের মধ্যে ডেলিভারি সম্পন্ন করা হয়।</p>
             </details>
-            <details className="group bg-[#F8F9FA] rounded-2xl border border-black/10 p-5 cursor-pointer">
-              <summary className="font-black text-sm list-none flex justify-between items-center text-black">
+            <details className="group bg-white rounded-2xl border-2 border-black/5 p-6 cursor-pointer shadow-sm">
+              <summary className="font-black text-base list-none flex justify-between items-center text-black">
                 পেমেন্ট কিভাবে করব?
                 <span className="text-orange-500 group-open:rotate-180 transition-transform">↓</span>
               </summary>
-              <p className="text-[13px] text-black font-medium mt-3 leading-relaxed">আমরা ক্যাশ অন ডেলিভারি (COD) এবং বিকাশ/নগদ পেমেন্ট গ্রহণ করি।</p>
+              <p className="text-sm text-black/70 font-semibold mt-4 leading-relaxed">আমরা ক্যাশ অন ডেলিভারি (COD) এবং বিকাশ/নগদ পেমেন্ট গ্রহণ করি।</p>
             </details>
           </div>
         </div>

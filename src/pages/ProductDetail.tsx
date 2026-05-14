@@ -1,27 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { getDocument } from '../lib/firestore';
+import { getDocument, getCollection } from '../lib/firestore';
 import { Product } from '../types';
 import { useCartStore } from '../lib/store';
-import { ShoppingBag, Zap, ArrowLeft, ShieldCheck, Truck, Clock, Star, Share2 } from 'lucide-react';
+import { ShoppingBag, Zap, ArrowLeft, ShieldCheck, Truck, Clock, Star, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { where, limit } from 'firebase/firestore';
+import ProductCard from '../components/ProductCard';
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const addItem = useCartStore((state) => state.addItem);
   const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProductAndRelated = async () => {
       if (!id) return;
       try {
         setLoading(true);
         const data = await getDocument<Product>('products', id);
         if (data) {
           setProduct(data);
+          // Fetch related products
+          const related = await getCollection<Product>('products', [
+            where('category', '==', data.category),
+            limit(5)
+          ]);
+          if (related) {
+            setRelatedProducts(related.filter(p => p.id !== data.id));
+          }
         } else {
           setProduct(null);
         }
@@ -32,7 +43,7 @@ export default function ProductDetail() {
         setLoading(false);
       }
     };
-    fetchProduct();
+    fetchProductAndRelated();
     window.scrollTo(0, 0);
   }, [id]);
 
@@ -85,30 +96,51 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           {/* Image Gallery */}
           <div className="space-y-6">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="aspect-square bg-white rounded-[3rem] p-8 border border-black/5 flex items-center justify-center overflow-hidden shadow-sm group relative"
-            >
-              <img 
-                src={productImages[activeImage]} 
-                alt={product.name}
-                className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
-                referrerPolicy="no-referrer"
-              />
-              {product.isHot && (
-                <div className="absolute top-8 left-8 bg-red-500 text-white text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-xl animate-pulse">Trending Now</div>
+            <div className="relative group">
+              <motion.div 
+                key={activeImage}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4 }}
+                className="aspect-square bg-white rounded-[3rem] p-8 border border-black/5 flex items-center justify-center overflow-hidden shadow-sm group relative"
+              >
+                <img 
+                  src={productImages[activeImage]} 
+                  alt={product.name}
+                  className="w-full h-full object-contain transition-transform duration-700 hover:scale-105"
+                  referrerPolicy="no-referrer"
+                />
+                {product.isHot && (
+                  <div className="absolute top-8 left-8 bg-red-500 text-white text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-xl animate-pulse">Trending Now</div>
+                )}
+              </motion.div>
+
+              {productImages.length > 1 && (
+                <>
+                  <button 
+                    onClick={() => setActiveImage(prev => (prev === 0 ? productImages.length - 1 : prev - 1))}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 p-4 bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-black/5 opacity-0 group-hover:opacity-100 transition-all hover:bg-orange-500 hover:text-white"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button 
+                    onClick={() => setActiveImage(prev => (prev === productImages.length - 1 ? 0 : prev + 1))}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-4 bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-black/5 opacity-0 group-hover:opacity-100 transition-all hover:bg-orange-500 hover:text-white"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </>
               )}
-            </motion.div>
+            </div>
             
             {productImages.length > 1 && (
-              <div className="flex gap-4">
+              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                 {productImages.map((img, idx) => (
                   <button 
                     key={idx}
                     onClick={() => setActiveImage(idx)}
-                    className={`w-24 h-24 rounded-2xl bg-white border-2 transition-all p-2 flex items-center justify-center overflow-hidden ${
-                      activeImage === idx ? 'border-orange-500 shadow-lg' : 'border-black/5 opacity-60 hover:opacity-100'
+                    className={`flex-shrink-0 w-24 h-24 rounded-2xl bg-white border-2 transition-all p-2 flex items-center justify-center overflow-hidden ${
+                      activeImage === idx ? 'border-orange-500 shadow-md' : 'border-black/5 opacity-60 hover:opacity-100'
                     }`}
                   >
                     <img src={img} alt={`${product.name} ${idx}`} className="w-full h-full object-contain" referrerPolicy="no-referrer" />
@@ -200,6 +232,25 @@ export default function ProductDetail() {
             </div>
           </div>
         </div>
+
+        {/* Related Products */}
+        {relatedProducts.length > 0 && (
+          <div className="mt-32">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-orange-500/60 italic mb-2 block">Curation Hub</span>
+                <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter leading-none">Similar <span className="text-orange-500">Assets</span></h2>
+              </div>
+              <p className="text-black/40 text-xs font-bold uppercase tracking-widest max-w-sm">Explore more cutting-edge selections from the same category ecosystem.</p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
+              {relatedProducts.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -152,11 +152,11 @@ export default function Home() {
                   <div className="absolute -top-24 -left-24 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl" />
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 px-4 relative z-10">
                      <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-black text-white rounded-[2.5rem] flex items-center justify-center shadow-2xl rotate-3">
+                        <div className="w-16 h-16 bg-indigo-600 text-white rounded-[2.5rem] flex items-center justify-center shadow-2xl rotate-3">
                            <TrendingUp className="w-8 h-8" />
                         </div>
                         <div>
-                           <h2 className="text-5xl font-black uppercase tracking-tighter leading-none italic">Top <br/><span className="text-orange-500">Sales</span></h2>
+                           <h2 className="text-5xl font-black uppercase tracking-tighter leading-none italic">Top <br/><span className="text-indigo-600">Sales</span></h2>
                            <p className="text-black/40 text-xs font-black uppercase tracking-widest mt-2 px-1">Trend Analysis: High Performance</p>
                         </div>
                      </div>

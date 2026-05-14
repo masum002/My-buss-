@@ -38,12 +38,24 @@ export default function AdminDashboard() {
     description: '',
     stock: '',
     imageUrl: '',
+    imageUrl2: '',
+    imageUrl3: '',
+    imageUrl4: '',
     isHot: false,
     isTopSale: false
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFile2, setImageFile2] = useState<File | null>(null);
+  const [imageFile3, setImageFile3] = useState<File | null>(null);
+  const [imageFile4, setImageFile4] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview2, setImagePreview2] = useState<string | null>(null);
+  const [imagePreview3, setImagePreview3] = useState<string | null>(null);
+  const [imagePreview4, setImagePreview4] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef2 = useRef<HTMLInputElement>(null);
+  const fileInputRef3 = useRef<HTMLInputElement>(null);
+  const fileInputRef4 = useRef<HTMLInputElement>(null);
 
   // Coupon Form State
   const [showCouponModal, setShowCouponModal] = useState(false);
@@ -302,25 +314,32 @@ export default function AdminDashboard() {
     try {
       let finalImages: string[] = [];
       
-      // Prioritize URL if provided, otherwise check upload
-      if (productForm.imageUrl) {
-        finalImages = [productForm.imageUrl];
-      } else if (imageFile) {
-        try {
-          const storageRef = ref(storage, `products/${Date.now()}-${imageFile.name}`);
-          await uploadBytes(storageRef, imageFile);
-          const url = await getDownloadURL(storageRef);
-          finalImages = [url];
-        } catch (storageErr) {
-          console.error("Storage upload failed", storageErr);
-          throw new Error(JSON.stringify({ error: "Storage upload failed. Please try Image URL instead." }));
+      const uploadProcess = async (file: File | null, url: string, existing: string | undefined): Promise<string | null> => {
+        if (url) return url;
+        if (file) {
+          try {
+            const storageRef = ref(storage, `products/${Date.now()}-${file.name}`);
+            await uploadBytes(storageRef, file);
+            return await getDownloadURL(storageRef);
+          } catch (storageErr) {
+            console.error("Storage upload failed", storageErr);
+            throw new Error(JSON.stringify({ error: "Storage upload failed. Please try Image URL instead." }));
+          }
         }
-      } else if (editingProduct && editingProduct.images) {
-        finalImages = editingProduct.images;
-      }
+        return existing || null;
+      };
+
+      const img1 = await uploadProcess(imageFile, productForm.imageUrl, editingProduct?.images?.[0]);
+      const img2 = await uploadProcess(imageFile2, productForm.imageUrl2, editingProduct?.images?.[1]);
+      const img3 = await uploadProcess(imageFile3, productForm.imageUrl3, editingProduct?.images?.[2]);
+      const img4 = await uploadProcess(imageFile4, productForm.imageUrl4, editingProduct?.images?.[3]);
+
+      [img1, img2, img3, img4].forEach(img => {
+        if (img) finalImages.push(img);
+      });
 
       if (finalImages.length === 0) {
-        throw new Error(JSON.stringify({ error: "Please provide an image URL or upload an image." }));
+        throw new Error(JSON.stringify({ error: "Please provide at least one image URL or upload an image." }));
       }
 
       const pData = { 
@@ -371,10 +390,16 @@ export default function AdminDashboard() {
       description: p.description,
       stock: String(p.stock) as any,
       imageUrl: p.images[0] || '',
+      imageUrl2: p.images[1] || '',
+      imageUrl3: p.images[2] || '',
+      imageUrl4: p.images[3] || '',
       isHot: p.isHot || false,
       isTopSale: p.isTopSale || false
     });
-    setImagePreview(p.images[0]);
+    setImagePreview(p.images[0] || null);
+    setImagePreview2(p.images[1] || null);
+    setImagePreview3(p.images[2] || null);
+    setImagePreview4(p.images[3] || null);
     setShowProductModal(true);
   };
 
@@ -393,11 +418,20 @@ export default function AdminDashboard() {
       description: '', 
       stock: '' as any, 
       imageUrl: '',
+      imageUrl2: '',
+      imageUrl3: '',
+      imageUrl4: '',
       isHot: false,
       isTopSale: false 
     });
     setImageFile(null);
+    setImageFile2(null);
+    setImageFile3(null);
+    setImageFile4(null);
     setImagePreview(null);
+    setImagePreview2(null);
+    setImagePreview3(null);
+    setImagePreview4(null);
   };
 
   // Settings Management
@@ -1396,47 +1430,171 @@ export default function AdminDashboard() {
                       </button>
                    </div>
 
-                   <form onSubmit={handleProductSubmit} className="p-10 grid grid-cols-1 md:grid-cols-2 gap-10 overflow-y-auto max-h-[70vh]">
+                   <form onSubmit={handleProductSubmit} className="p-10 grid grid-cols-1 md:grid-cols-2 gap-10 overflow-y-auto max-h-[85vh]">
                       <div className="space-y-8">
-                          <div 
-                            onClick={() => fileInputRef.current?.click()}
-                            className="aspect-square bg-[#F8F9FA] border-2 border-dashed border-black/10 rounded-[2.5rem] flex flex-col items-center justify-center cursor-pointer hover:border-orange-500/50 transition-all group overflow-hidden relative shadow-inner"
-                          >
-                             {imagePreview ? (
-                                 <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
-                             ) : (
-                                 <>
-                                    <ImageIcon className="w-12 h-12 text-black/10 mb-4 group-hover:text-orange-500 transition-colors" />
-                                    <span className="text-[10px] font-black uppercase text-black/30 tracking-[0.2em]">Upload Aesthetic Asset</span>
-                                 </>
-                             )}
-                             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => {
-                                 const file = e.target.files?.[0];
-                                 if (file) {
-                                    setImageFile(file);
-                                    const r = new FileReader();
-                                    r.onload = () => {
-                                      setImagePreview(r.result as string);
-                                      setProductForm(prev => ({ ...prev, imageUrl: '' })); // Clear URL if file selected
-                                    };
-                                    r.readAsDataURL(file);
-                                 }
-                             }} />
+                          <div className="grid grid-cols-2 gap-4">
+                            <div 
+                              onClick={() => fileInputRef.current?.click()}
+                              className="aspect-square bg-[#F8F9FA] border-2 border-dashed border-black/10 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer hover:border-orange-500/50 transition-all group overflow-hidden relative shadow-inner"
+                            >
+                               {imagePreview ? (
+                                   <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                               ) : (
+                                   <>
+                                      <ImageIcon className="w-8 h-8 text-black/10 mb-2 group-hover:text-orange-500 transition-colors" />
+                                      <span className="text-[8px] font-black uppercase text-black/30 tracking-[0.2em] text-center px-2">Main Image</span>
+                                   </>
+                               )}
+                               <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => {
+                                   const file = e.target.files?.[0];
+                                   if (file) {
+                                      setImageFile(file);
+                                      const r = new FileReader();
+                                      r.onload = () => {
+                                        setImagePreview(r.result as string);
+                                        setProductForm(prev => ({ ...prev, imageUrl: '' }));
+                                      };
+                                      r.readAsDataURL(file);
+                                   }
+                               }} />
+                            </div>
+
+                            <div 
+                              onClick={() => fileInputRef2.current?.click()}
+                              className="aspect-square bg-[#F8F9FA] border-2 border-dashed border-black/10 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer hover:border-orange-500/50 transition-all group overflow-hidden relative shadow-inner"
+                            >
+                               {imagePreview2 ? (
+                                   <img src={imagePreview2} alt="Preview" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                               ) : (
+                                   <>
+                                      <ImageIcon className="w-6 h-6 text-black/10 mb-2 group-hover:text-orange-500 transition-colors" />
+                                      <span className="text-[8px] font-black uppercase text-black/30 tracking-[0.2em] text-center px-2">Extra 1 (Optional)</span>
+                                   </>
+                               )}
+                               <input type="file" ref={fileInputRef2} className="hidden" accept="image/*" onChange={(e) => {
+                                   const file = e.target.files?.[0];
+                                   if (file) {
+                                      setImageFile2(file);
+                                      const r = new FileReader();
+                                      r.onload = () => {
+                                        setImagePreview2(r.result as string);
+                                        setProductForm(prev => ({ ...prev, imageUrl2: '' }));
+                                      };
+                                      r.readAsDataURL(file);
+                                   }
+                               }} />
+                            </div>
+
+                            <div 
+                              onClick={() => fileInputRef3.current?.click()}
+                              className="aspect-square bg-[#F8F9FA] border-2 border-dashed border-black/10 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer hover:border-orange-500/50 transition-all group overflow-hidden relative shadow-inner"
+                            >
+                               {imagePreview3 ? (
+                                   <img src={imagePreview3} alt="Preview" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                               ) : (
+                                   <>
+                                      <ImageIcon className="w-6 h-6 text-black/10 mb-2 group-hover:text-orange-500 transition-colors" />
+                                      <span className="text-[8px] font-black uppercase text-black/30 tracking-[0.2em] text-center px-2">Extra 2 (Optional)</span>
+                                   </>
+                               )}
+                               <input type="file" ref={fileInputRef3} className="hidden" accept="image/*" onChange={(e) => {
+                                   const file = e.target.files?.[0];
+                                   if (file) {
+                                      setImageFile3(file);
+                                      const r = new FileReader();
+                                      r.onload = () => {
+                                        setImagePreview3(r.result as string);
+                                        setProductForm(prev => ({ ...prev, imageUrl3: '' }));
+                                      };
+                                      r.readAsDataURL(file);
+                                   }
+                               }} />
+                            </div>
+
+                            <div 
+                              onClick={() => fileInputRef4.current?.click()}
+                              className="aspect-square bg-[#F8F9FA] border-2 border-dashed border-black/10 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer hover:border-orange-500/50 transition-all group overflow-hidden relative shadow-inner"
+                            >
+                               {imagePreview4 ? (
+                                   <img src={imagePreview4} alt="Preview" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                               ) : (
+                                   <>
+                                      <ImageIcon className="w-6 h-6 text-black/10 mb-2 group-hover:text-orange-500 transition-colors" />
+                                      <span className="text-[8px] font-black uppercase text-black/30 tracking-[0.2em] text-center px-2">Extra 3 (Optional)</span>
+                                   </>
+                               )}
+                               <input type="file" ref={fileInputRef4} className="hidden" accept="image/*" onChange={(e) => {
+                                   const file = e.target.files?.[0];
+                                   if (file) {
+                                      setImageFile4(file);
+                                      const r = new FileReader();
+                                      r.onload = () => {
+                                        setImagePreview4(r.result as string);
+                                        setProductForm(prev => ({ ...prev, imageUrl4: '' }));
+                                      };
+                                      r.readAsDataURL(file);
+                                   }
+                               }} />
+                            </div>
                           </div>
 
-                          <div className="space-y-3">
-                             <label className="text-[10px] font-black uppercase text-black/30 tracking-[0.2em] block px-1">Or Direct Asset URL</label>
-                             <input 
-                               type="url" 
-                               value={productForm.imageUrl}
-                               onChange={e => {
-                                 setProductForm({...productForm, imageUrl: e.target.value});
-                                 setImagePreview(e.target.value);
-                                 setImageFile(null); // Clear file if URL entered
-                               }}
-                               className="w-full bg-[#F8F9FA] border border-black/5 p-5 rounded-2xl font-black text-xs shadow-inner focus:border-orange-500 outline-none" 
-                               placeholder="https://assets.unsplash.com/..."
-                             />
+                          <div className="space-y-4">
+                             <div className="space-y-2">
+                                <label className="text-[9px] font-black uppercase text-black/30 tracking-[0.2em] block px-1">Main Image URL</label>
+                                <input 
+                                  type="url" 
+                                  value={productForm.imageUrl}
+                                  onChange={e => {
+                                    setProductForm({...productForm, imageUrl: e.target.value});
+                                    setImagePreview(e.target.value);
+                                    setImageFile(null);
+                                  }}
+                                  className="w-full bg-[#F8F9FA] border border-black/5 p-4 rounded-xl font-black text-[10px] shadow-inner focus:border-orange-500 outline-none" 
+                                  placeholder="Primary Asset URL"
+                                />
+                             </div>
+                             <div className="space-y-2">
+                                <label className="text-[9px] font-black uppercase text-black/30 tracking-[0.2em] block px-1">Extra Image 1 URL</label>
+                                <input 
+                                  type="url" 
+                                  value={productForm.imageUrl2}
+                                  onChange={e => {
+                                    setProductForm({...productForm, imageUrl2: e.target.value});
+                                    setImagePreview2(e.target.value);
+                                    setImageFile2(null);
+                                  }}
+                                  className="w-full bg-[#F8F9FA] border border-black/5 p-4 rounded-xl font-black text-[10px] shadow-inner focus:border-orange-500 outline-none" 
+                                  placeholder="Optional URL 1"
+                                />
+                             </div>
+                             <div className="space-y-2">
+                                <label className="text-[9px] font-black uppercase text-black/30 tracking-[0.2em] block px-1">Extra Image 2 URL</label>
+                                <input 
+                                  type="url" 
+                                  value={productForm.imageUrl3}
+                                  onChange={e => {
+                                    setProductForm({...productForm, imageUrl3: e.target.value});
+                                    setImagePreview3(e.target.value);
+                                    setImageFile3(null);
+                                  }}
+                                  className="w-full bg-[#F8F9FA] border border-black/5 p-4 rounded-xl font-black text-[10px] shadow-inner focus:border-orange-500 outline-none" 
+                                  placeholder="Optional URL 2"
+                                />
+                             </div>
+                             <div className="space-y-2">
+                                <label className="text-[9px] font-black uppercase text-black/30 tracking-[0.2em] block px-1">Extra Image 3 URL</label>
+                                <input 
+                                  type="url" 
+                                  value={productForm.imageUrl4}
+                                  onChange={e => {
+                                    setProductForm({...productForm, imageUrl4: e.target.value});
+                                    setImagePreview4(e.target.value);
+                                    setImageFile4(null);
+                                  }}
+                                  className="w-full bg-[#F8F9FA] border border-black/5 p-4 rounded-xl font-black text-[10px] shadow-inner focus:border-orange-500 outline-none" 
+                                  placeholder="Optional URL 3"
+                                />
+                             </div>
                           </div>
 
                           <div className="space-y-3">
