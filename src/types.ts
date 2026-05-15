@@ -47,6 +47,18 @@ export interface Category {
   createdAt: any;
 }
 
+export interface SupportReport {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  orderId?: string;
+  type: 'report' | 'contact';
+  status: 'pending' | 'resolved';
+  createdAt: any;
+}
+
 export interface Order {
   id: string;
   orderID: string;

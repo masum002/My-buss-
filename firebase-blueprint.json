@@ -87,6 +87,22 @@
         "emailSupport": { "type": "string" },
         "registeredOffice": { "type": "string" }
       }
+    },
+    "SupportReport": {
+      "title": "Support Report",
+      "description": "A user-submitted report or contact request",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "orderId": { "type": "string" },
+        "type": { "type": "string", "enum": ["report", "contact"] },
+        "status": { "type": "string", "enum": ["pending", "resolved"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "subject", "message", "type", "status"]
     }
   },
   "firestore": {
@@ -113,6 +129,10 @@
     "settings": {
       "schema": "object",
       "description": "Global store settings like delivery charges"
+    },
+    "reports": {
+      "schema": "SupportReport",
+      "description": "Collection of user-submitted reports and contact requests"
     }
   }
 }

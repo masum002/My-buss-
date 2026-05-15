@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Search, MoreHorizontal, Package, X, ArrowRight, Zap, Info, Shield, HelpCircle, LayoutGrid } from 'lucide-react';
+import { ShoppingCart, Search, MoreHorizontal, Package, X, ArrowRight, Zap, ListFilter, MessageSquareWarning, Phone, ChevronLeft, LayoutGrid, MapPin, Mail as MailIcon } from 'lucide-react';
 import { useCartStore } from '../lib/store';
 import { motion, AnimatePresence } from 'motion/react';
-import { getCollection } from '../lib/firestore';
-import { Product } from '../types';
+import { getCollection, getDocument } from '../lib/firestore';
+import { Product, Category } from '../types';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -12,10 +12,27 @@ export default function Navbar() {
   const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [settings, setSettings] = useState<any>(null);
+  const [menuView, setMenuView] = useState<'main' | 'categories'>('main');
+  const [categories, setCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const data = await getCollection<Category>('categories');
+      if (data) setCategories(data);
+    };
+    const fetchSettings = async () => {
+      const data = await getDocument<any>('settings', 'global');
+      if (data) setSettings(data);
+    };
+    fetchCategories();
+    fetchSettings();
+  }, []);
 
   useEffect(() => {
     if (isSearchOpen) {
@@ -93,67 +110,98 @@ export default function Navbar() {
                 <MoreHorizontal className="w-5 h-5" />
               </button>
 
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 {isMenuOpen && (
                   <>
-                    <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
+                    <div className="fixed inset-0 z-10" onClick={() => { setIsMenuOpen(false); setMenuView('main'); }} />
                     <motion.div
+                      key={menuView}
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       className="absolute right-0 mt-4 w-64 bg-white rounded-3xl shadow-2xl p-4 border border-black/5 z-20 overflow-hidden"
                     >
-                      <div className="space-y-1">
-                        <Link 
-                          to="/#shop" 
-                          onClick={() => setIsMenuOpen(false)}
-                          className="flex items-center justify-between p-3 hover:bg-[#F8F9FA] rounded-xl transition-all group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <LayoutGrid className="w-4 h-4 text-orange-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest italic">Categories</span>
+                      {menuView === 'main' ? (
+                        <div className="space-y-1">
+                          <button 
+                            onClick={() => setMenuView('categories')}
+                            className="w-full flex items-center justify-between p-4 hover:bg-[#F8F9FA] rounded-2xl transition-all group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <LayoutGrid className="w-5 h-5 text-indigo-600" />
+                              <span className="text-[11px] font-black uppercase tracking-widest italic">Categories</span>
+                            </div>
+                            <ArrowRight className="w-4 h-4 text-black/10 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
+                          </button>
+
+                          <Link 
+                            to="/track" 
+                            onClick={() => setIsMenuOpen(false)}
+                            className="flex items-center justify-between p-4 hover:bg-[#F8F9FA] rounded-2xl transition-all group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Package className="w-5 h-5 text-indigo-600" />
+                              <span className="text-[11px] font-black uppercase tracking-widest italic">Track Product</span>
+                            </div>
+                          </Link>
+
+                          <button 
+                            onClick={() => { setIsMenuOpen(false); navigate('/support', { state: { type: 'report' } }); }}
+                            className="w-full flex items-center justify-between p-4 hover:bg-[#F8F9FA] rounded-2xl transition-all group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <MessageSquareWarning className="w-5 h-5 text-indigo-600" />
+                              <span className="text-[11px] font-black uppercase tracking-widest italic">Sent a Report</span>
+                            </div>
+                          </button>
+
+                          <button 
+                            onClick={() => { setIsMenuOpen(false); setIsContactModalOpen(true); }}
+                            className="w-full flex items-center justify-between p-4 hover:bg-[#F8F9FA] rounded-2xl transition-all group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Phone className="w-5 h-5 text-indigo-600" />
+                              <span className="text-[11px] font-black uppercase tracking-widest italic">Contact Us</span>
+                            </div>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <button 
+                            onClick={() => setMenuView('main')}
+                            className="flex items-center gap-2 p-2 hover:text-indigo-600 transition-colors mb-2"
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                            <span className="text-[9px] font-black uppercase tracking-widest">Back</span>
+                          </button>
+                          
+                          <div className="max-h-[300px] overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                            {categories.length > 0 ? (
+                              categories.map((cat) => (
+                                <button
+                                  key={cat.id}
+                                  onClick={() => {
+                                    setIsMenuOpen(false);
+                                    setMenuView('main');
+                                    navigate(`/?category=${cat.name}`);
+                                  }}
+                                  className="w-full flex items-center justify-between p-4 hover:bg-[#F8F9FA] rounded-[1.5rem] transition-all group text-left"
+                                >
+                                  <span className="text-[10px] font-black uppercase tracking-widest">{cat.name}</span>
+                                  <div className="w-6 h-6 rounded-lg bg-indigo-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                                    <ArrowRight className="w-3 h-3 text-indigo-600" />
+                                  </div>
+                                </button>
+                              ))
+                            ) : (
+                              <p className="text-[10px] text-center py-4 font-bold opacity-30">No categories found</p>
+                            )}
                           </div>
-                        </Link>
-                        <Link 
-                          to="/track" 
-                          onClick={() => setIsMenuOpen(false)}
-                          className="flex items-center justify-between p-3 hover:bg-[#F8F9FA] rounded-xl transition-all group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Package className="w-4 h-4 text-orange-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest italic">Logistics</span>
-                          </div>
-                        </Link>
-                        <button 
-                          onClick={() => { setIsMenuOpen(false); navigate('/about'); }}
-                          className="w-full flex items-center justify-between p-3 hover:bg-[#F8F9FA] rounded-xl transition-all group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Info className="w-4 h-4 text-orange-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest italic">About Me</span>
-                          </div>
-                        </button>
-                        <button 
-                          onClick={() => { setIsMenuOpen(false); navigate('/support'); }}
-                          className="w-full flex items-center justify-between p-3 hover:bg-[#F8F9FA] rounded-xl transition-all group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <HelpCircle className="w-4 h-4 text-orange-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest italic">Support</span>
-                          </div>
-                        </button>
-                        <button 
-                          onClick={() => { setIsMenuOpen(false); navigate('/terms'); }}
-                          className="w-full flex items-center justify-between p-3 hover:bg-[#F8F9FA] rounded-xl transition-all group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Shield className="w-4 h-4 text-orange-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest italic">Protocol</span>
-                          </div>
-                        </button>
-                      </div>
+                        </div>
+                      )}
+                      
                       <div className="mt-4 pt-4 border-t border-black/5">
-                        <p className="text-center text-[7px] font-black uppercase tracking-[0.4em] text-black/20">FrenZway Terminal v2.1</p>
+                        <p className="text-center text-[7px] font-black uppercase tracking-[0.4em] text-black/20">FrenZway Portal v3.0</p>
                       </div>
                     </motion.div>
                   </>
@@ -259,6 +307,59 @@ export default function Navbar() {
               </div>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isContactModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="w-full max-w-lg bg-white border border-black/5 rounded-[3rem] shadow-2xl relative overflow-hidden"
+            >
+              <div className="p-10">
+                <div className="flex justify-between items-center mb-8">
+                  <h2 className="text-3xl font-black uppercase tracking-tighter italic">
+                    Contact Us
+                  </h2>
+                  <button 
+                    onClick={() => setIsContactModalOpen(false)}
+                    className="p-3 bg-black text-white rounded-full hover:bg-orange-500 transition-all active:scale-90 shadow-lg"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+                  <p className="text-black font-semibold text-base leading-relaxed">আমাদের সাথে যোগাযোগ করার জন্য নিচের তথ্যগুলো ব্যবহার করুন। আমরা ২৪ ঘণ্টার মধ্যে উত্তর দেওয়ার চেষ্টা করি।</p>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4 p-5 bg-white rounded-2xl border-2 border-black/5 shadow-sm">
+                      <Phone className="w-6 h-6 text-orange-500" />
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-black/40 tracking-widest">Hotline</p>
+                        <p className="font-black text-lg text-black">{settings?.hotline || '+880 1700-000000'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 p-5 bg-white rounded-2xl border-2 border-black/5 shadow-sm">
+                      <MailIcon className="w-6 h-6 text-orange-500" />
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-black/40 tracking-widest">Email Support</p>
+                        <p className="font-black text-lg text-black">{settings?.emailSupport || 'support@frenzway.com'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 p-5 bg-white rounded-2xl border-2 border-black/5 shadow-sm">
+                      <MapPin className="w-6 h-6 text-orange-500" />
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-black/40 tracking-widest">Registered Office</p>
+                        <p className="font-black text-base text-black leading-relaxed">{settings?.registeredOffice || 'Dhanmondi, Dhaka, Bangladesh'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </>

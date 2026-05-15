@@ -9,12 +9,12 @@ import { orderBy, Timestamp } from 'firebase/firestore';
 import { 
   Search, ChevronDown, Package, Clock, Filter, Eye, Lock, LogOut, 
   Plus, Settings, ListOrdered, Box, Trash2, Upload, Save, X, Truck, 
-  Smartphone, MapPin, Banknote, Image as ImageIcon, Ticket, ShieldCheck, UserPlus, Users, Mail
+  Smartphone, MapPin, Banknote, Image as ImageIcon, Ticket, ShieldCheck, UserPlus, Users, Mail, MessageSquareWarning, CheckCircle2
 } from 'lucide-react';
 
-import { Coupon, Admin } from '../types';
+import { Coupon, Admin, SupportReport } from '../types';
 
-type Tab = 'orders' | 'products' | 'categories' | 'coupons' | 'admins' | 'settings';
+type Tab = 'orders' | 'products' | 'categories' | 'coupons' | 'admins' | 'settings' | 'reports';
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState<Tab>('orders');
@@ -23,6 +23,7 @@ export default function AdminDashboard() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [adminsList, setAdminsList] = useState<Admin[]>([]);
+  const [reports, setReports] = useState<SupportReport[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
@@ -137,6 +138,9 @@ export default function AdminDashboard() {
       } else if (tab === 'admins') {
         const data = await getCollection<Admin>('admins', [orderBy('addedAt', 'desc')]);
         setAdminsList(data || []);
+      } else if (tab === 'reports') {
+        const data = await getCollection<SupportReport>('reports', [orderBy('createdAt', 'desc')]);
+        setReports(data || []);
       } else if (tab === 'settings') {
         const data = await getDocument<any>('settings', 'global');
         if (data) setSettings(data);
@@ -511,6 +515,7 @@ export default function AdminDashboard() {
               { id: 'products', label: 'Inventory', icon: Box },
               { id: 'categories', label: 'Segments', icon: Filter },
               { id: 'coupons', label: 'Coupons', icon: Ticket },
+              { id: 'reports', label: 'Reports', icon: MessageSquareWarning },
               ...(isSuperAdmin ? [{ id: 'admins', label: 'Admins', icon: ShieldCheck }] : []),
               { id: 'settings', label: 'Config', icon: Settings }
             ].map((t) => (
@@ -664,6 +669,98 @@ export default function AdminDashboard() {
                        </tbody>
                     </table>
                  </div>
+               </div>
+            )}
+
+            {tab === 'reports' && (
+               <div className="space-y-8">
+                  <div className="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-[2rem] border border-black/5 gap-6 shadow-sm">
+                    <div className="flex-1">
+                       <h2 className="text-xl font-black uppercase tracking-tighter italic">Conflict Reports</h2>
+                       <p className="text-xs text-black/40 font-medium tracking-wide">Monitoring system transmissions and user feedback.</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-black/5 rounded-[2.5rem] overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead className="bg-[#F8F9FA] border-b border-black/5">
+                          <tr>
+                            <th className="p-6 text-[10px] uppercase font-black text-black/30 tracking-widest">Metadata</th>
+                            <th className="p-6 text-[10px] uppercase font-black text-black/30 tracking-widest">Contact</th>
+                            <th className="p-6 text-[10px] uppercase font-black text-black/30 tracking-widest">Transmission</th>
+                            <th className="p-6 text-[10px] uppercase font-black text-black/30 tracking-widest">Status</th>
+                            <th className="p-6 text-right"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-black/5">
+                          {reports.map((report) => (
+                            <tr key={report.id} className="hover:bg-[#F8F9FA] group transition-colors">
+                              <td className="p-6">
+                                <div className="space-y-2">
+                                  <span className={`text-[8px] font-black uppercase px-2 py-1 rounded-full border ${
+                                    report.type === 'report' ? 'bg-orange-50 text-orange-500 border-orange-100' : 'bg-blue-50 text-blue-500 border-blue-100'
+                                  }`}>
+                                    {report.type}
+                                  </span>
+                                  <p className="text-[10px] font-mono text-black/40">{report.id.slice(-12).toUpperCase()}</p>
+                                  <p className="text-[9px] font-black text-black/20 uppercase">{report.createdAt?.toDate?.()?.toLocaleString()}</p>
+                                </div>
+                              </td>
+                              <td className="p-6">
+                                <p className="font-bold text-sm uppercase italic">{report.name}</p>
+                                <p className="text-xs text-black/40">{report.email}</p>
+                                {report.orderId && (
+                                  <p className="text-[9px] font-black text-orange-500 mt-2 uppercase tracking-widest">Order: {report.orderId}</p>
+                                )}
+                              </td>
+                              <td className="p-6">
+                                <p className="font-black text-xs uppercase mb-1 tracking-tight">{report.subject}</p>
+                                <p className="text-xs text-black/60 font-medium max-w-md line-clamp-2 italic leading-relaxed">{report.message}</p>
+                              </td>
+                              <td className="p-6">
+                                <button 
+                                  onClick={() => {
+                                    const newStatus = report.status === 'resolved' ? 'pending' : 'resolved';
+                                    updateDocument('reports', report.id, { status: newStatus }).then(fetchData);
+                                  }}
+                                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                                    report.status === 'resolved' 
+                                      ? 'bg-green-50 text-green-600 border border-green-100' 
+                                      : 'bg-orange-50 text-orange-600 border border-orange-100'
+                                  }`}
+                                >
+                                  {report.status === 'resolved' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                                  {report.status}
+                                </button>
+                              </td>
+                              <td className="p-6 text-right">
+                                <button 
+                                  onClick={async () => {
+                                    if(confirm("Permanently erase this report record?")) {
+                                      await deleteDocument('reports', report.id);
+                                      fetchData();
+                                    }
+                                  }}
+                                  className="p-3 bg-red-50 text-red-500 border border-red-100 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                          {reports.length === 0 && (
+                            <tr>
+                              <td colSpan={5} className="p-20 text-center">
+                                <MessageSquareWarning className="w-12 h-12 text-black/5 mx-auto mb-4" />
+                                <p className="text-black/40 font-medium italic">No transmissions found in the buffer.</p>
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                </div>
             )}
 

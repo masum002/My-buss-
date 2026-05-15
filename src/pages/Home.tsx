@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { getCollection } from '../lib/firestore';
 import { Product } from '../types';
@@ -8,6 +9,8 @@ import { seedDatabase } from '../lib/seed';
 import { Category } from '../types';
 
 export default function Home() {
+  const [searchParams] = useSearchParams();
+  const categoryQuery = searchParams.get('category');
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -15,6 +18,17 @@ export default function Home() {
   const [hotLimit, setHotLimit] = useState(10);
   const [topLimit, setTopLimit] = useState(10);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (categoryQuery) {
+      setSelectedCategory(categoryQuery);
+      setTimeout(() => {
+        document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' });
+      }, 500);
+    } else {
+      setSelectedCategory('all');
+    }
+  }, [categoryQuery]);
 
   useEffect(() => {
     const init = async () => {
